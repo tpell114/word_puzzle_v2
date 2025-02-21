@@ -6,3 +6,4 @@ public interface WordRepositoryServer extends Remote {
     public boolean checkWord(String word) throws RemoteException;
     public String getRandomWord(int length) throws RemoteException;
 }
+
