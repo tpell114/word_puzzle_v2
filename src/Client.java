@@ -85,14 +85,17 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
 
         try {
-            gameID = server.startGame(this.username, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
+            gameID = server.startGame(this.username, this, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
             System.out.println("\nStarted game with ID: " + gameID);
             System.out.println("Share this ID with your friends to join the game.");
+            char[][] initialPuzzle = server.getInitialPuzzle(gameID);
+            printPuzzle(initialPuzzle);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        playGame();
+        System.out.println("Please wait while the game starts...");
         
     }
 
@@ -103,42 +106,24 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     }
 
-    private void playGame(){
+    @Override
+    public void onYourTurn(char[][] puzzle) throws RemoteException {
 
-        System.out.println(Constants.GUESS_MESSAGE);
-        String guess = System.console().readLine().toLowerCase().trim();
-
-        while ((!guess.matches("^[a-zA-Z?]*$") && !guess.equals("~")) || guess.equals("")) {
-            System.out.println("Invalid input.");
-            System.out.println(Constants.GUESS_MESSAGE);
-            guess = System.console().readLine().toLowerCase().trim();
-        }
-
-        while (!guess.equals("~")) {
-
-            if (guess.charAt(0) == '?') {
-                
-
-                //word repo logic
-
-            } else {
-
-                try {
-                    server.guess(gameID, guess);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                
-                System.out.println(Constants.GUESS_MESSAGE);
-                guess = System.console().readLine();
-                while ((!guess.matches("^[a-zA-Z?]*$") && !guess.equals("~")) || guess.equals("")) {
-                    System.out.println("Invalid input.");
-                    System.out.println(Constants.GUESS_MESSAGE);
-                    guess = System.console().readLine().toLowerCase().trim();
-                }
-            }
-        }
-
+        System.out.println("\nIt's your turn!");
+        printPuzzle(puzzle);
+        
+        
     }
+
+    private void printPuzzle(char[][] puzzle) {
+
+        for (int i = 0; i < puzzle.length; i++) {
+            for (int j = 0; j < puzzle[i].length; j++) {
+                System.out.print(puzzle[i][j]);
+            }
+            System.out.println("\n");
+        }
+    }
+
 
 }

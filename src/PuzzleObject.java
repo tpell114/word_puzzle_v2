@@ -10,21 +10,23 @@ public class PuzzleObject {
     private Integer difficultyFactor;
     private Integer guessCounter;
     private Map<String, ClientCallbackInterface> players = new LinkedHashMap<>();
+    private String activePlayer;
     private String stem;
     private List<String> horizontalWords = new ArrayList<>();
     private char[][] puzzleMaster;
     private char[][] puzzleSlave;
 
-    public PuzzleObject(String username, Integer gameID, Integer numWords, Integer difficultyFactor) {
-        this.players.add(username);
+    public PuzzleObject(String username, ClientCallbackInterface client, Integer gameID, Integer numWords, Integer difficultyFactor) {
+        this.players.put(username, client);
+        this.activePlayer = username;
         this.gameID = gameID;
         this.numWords = numWords;
         this.difficultyFactor = difficultyFactor;
         this.guessCounter = 0;
     }
 
-    public void addPlayer(String username) {
-        this.players.add(username);
+    public void addPlayer(String username, ClientCallbackInterface client) {
+        this.players.put(username, client);
     }
 
     /**
@@ -105,11 +107,29 @@ public class PuzzleObject {
         return false;
     }
 
+    public String getActivePlayer() {
+        return activePlayer;
+    }
+
+    public ClientCallbackInterface getActivePlayerCallback() {
+        return players.get(activePlayer);
+    }
 
 
+    public char[][] getPuzzleSlaveCopy() {
+        
+        lock.lock();
+        char[][] copy = new char[puzzleSlave.length][puzzleSlave[0].length];
 
+        for (int i = 0; i < puzzleSlave.length; i++) {
+            copy[i] = Arrays.copyOf(puzzleSlave[i], puzzleSlave[i].length);
+        }
 
+        lock.unlock();
+        return copy;
 
+    }
+    
 
 
 

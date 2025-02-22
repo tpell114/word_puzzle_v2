@@ -24,7 +24,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     }
 
-    public Integer startGame(String username, Integer numWords, Integer difficultyFactor) throws RemoteException {
+    public Integer startGame(String username, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException {
 
         Random random = new Random();
         Integer gameID;
@@ -36,7 +36,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             gameID = random.nextInt(99) + 1;
 
             if (!gamesMap.containsKey(gameID)) {
-                gamesMap.put(gameID, new PuzzleObject(username, gameID, numWords, difficultyFactor));
+                gamesMap.put(gameID, new PuzzleObject(username, client, gameID, numWords, difficultyFactor));
                 System.out.println("Starting a new game -> ID: " + gameID + 
                                    ", Number of words: " + numWords + 
                                    ", Difficulty factor: " + difficultyFactor);
@@ -48,25 +48,15 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         throw new RemoteException("Server is full. Please try again later.");
     }
 
-    public void joinGame(Integer gameID, String username) throws RemoteException {
-        gamesMap.get(gameID).addPlayer(username);
+    public void joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
+        gamesMap.get(gameID).addPlayer(username, client);
+    }
+
+    public char[][] getInitialPuzzle(Integer gameID) throws RemoteException {
+        return gamesMap.get(gameID).getPuzzleSlaveCopy();
     }
     
     public void playerGuess(Integer gameID, String guess) throws RemoteException {
-
-        String trimmedGuess = guess.trim();
-        Boolean solvedFlag;
-        PuzzleObject game = gamesMap.get(gameID);
-
-        if (trimmedGuess.length() == 1) {
-
-            solvedFlag = game.guessChar(trimmedGuess.charAt(0));
-
-        } else {
-
-            solvedFlag = game.guessWord(trimmedGuess);
-
-        }
 
 
         
