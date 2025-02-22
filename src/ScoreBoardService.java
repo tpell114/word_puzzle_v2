@@ -20,6 +20,7 @@ public class ScoreboardService extends UnicastRemoteObject implements Scoreboard
 
     @Override
     public Map<String, Integer> getTopPlayers(int n) throws RemoteException {
+        try{
         System.out.println("Fetching top " + n + " players");
 
         // Fetch all players and scores from Account Service
@@ -44,6 +45,11 @@ public class ScoreboardService extends UnicastRemoteObject implements Scoreboard
                             Map.Entry::getKey, 
                             Map.Entry::getValue, 
                             (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+    }
+    catch (RemoteException e){
+        System.out.println("Error: Account Service is down. Returning empty scoreboard.");
+        return Collections.emptyMap();
+    }
     }
 
     public static void main(String[] args) {
