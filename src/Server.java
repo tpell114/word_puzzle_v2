@@ -24,8 +24,20 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     }
 
+    /* 
+    public Integer startGame(ClientCallbackInterface client) throws RemoteException {
+
+        return 5;
+    }
+    */
+
+
+
+
+    
     public Integer startGame(String username, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException {
 
+        
         Random random = new Random();
         Integer gameID;
         long startTime = System.currentTimeMillis();
@@ -47,7 +59,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     
         throw new RemoteException("Server is full. Please try again later.");
     }
-
+    
     public void joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
         gamesMap.get(gameID).addPlayer(username, client);
     }

@@ -8,6 +8,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     private Integer gameID;
 
     public Client() throws RemoteException {
+        super();
         gameID = -1;
     }
 
@@ -85,12 +86,15 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
 
         try {
+            
+            //gameID = server.startGame(this);
+
             gameID = server.startGame(this.username, this, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
             System.out.println("\nStarted game with ID: " + gameID);
             System.out.println("Share this ID with your friends to join the game.");
             char[][] initialPuzzle = server.getInitialPuzzle(gameID);
             printPuzzle(initialPuzzle);
-
+            playGame();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -103,6 +107,10 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
         System.out.println("\nEnter the ID of the game you would like to join: ");
         String gameID = System.console().readLine();
+
+    }
+
+    private void playGame() {
 
     }
 

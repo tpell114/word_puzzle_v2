@@ -23,6 +23,8 @@ public class PuzzleObject {
         this.numWords = numWords;
         this.difficultyFactor = difficultyFactor;
         this.guessCounter = 0;
+
+        initPuzzleTest(); //for testing
     }
 
     public void addPlayer(String username, ClientCallbackInterface client) {
@@ -117,7 +119,7 @@ public class PuzzleObject {
 
 
     public char[][] getPuzzleSlaveCopy() {
-        
+
         lock.lock();
         char[][] copy = new char[puzzleSlave.length][puzzleSlave[0].length];
 
@@ -130,7 +132,12 @@ public class PuzzleObject {
 
     }
     
+    private void initPuzzleTest() {
 
+        this.puzzleMaster = new char[][]{{'A', 'B', 'C', 'D'}, {'E', 'F', 'G', 'H'}, {'I', 'J', 'K', 'L'}, {'M', 'N', 'O', 'P'}};
+        this.puzzleSlave = new char[][]{{'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}};
+
+    }
 
 
 

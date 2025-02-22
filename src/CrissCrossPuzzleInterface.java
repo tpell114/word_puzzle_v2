@@ -2,6 +2,7 @@ import java.rmi.*;
 
 public interface CrissCrossPuzzleInterface extends Remote {
 
+    //public Integer startGame(ClientCallbackInterface client) throws RemoteException;
     public Integer startGame(String player, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException;
     public void joinGame(Integer gameID, String player, ClientCallbackInterface client) throws RemoteException;
     public char[][] getInitialPuzzle(Integer gameID) throws RemoteException;
