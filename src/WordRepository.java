@@ -16,13 +16,12 @@ public class WordRepository extends UnicastRemoteObject implements WordRepositor
     public static void main(String[] args) {
 
         try {
-            WordRepository WordRepository = new WordRepository();
-
-            
-        } catch (RemoteException e) {
+            WordRepository wordRepo = new WordRepository();
+            Naming.rebind("rmi://localhost:1099/WordRepositoryServer", wordRepo);
+            System.out.println("WordRepositoryServer is registered with the RMI registry.");
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
 
     }
 
