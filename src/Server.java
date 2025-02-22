@@ -69,10 +69,31 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     }
     
     public void playerGuess(Integer gameID, String guess) throws RemoteException {
-
-
-        
+    
+        PuzzleObject game = gamesMap.get(gameID);
+    
+        System.out.println("Received guess: " + guess + " for game ID: " + gameID);
+    
+        ClientCallbackInterface callback = game.getActivePlayerCallback();
+    
+        System.out.println("Callback object: " + callback);
+    
+        try {
+            System.out.println("Entering try block");
+    
+            char[][] puzzleSlave = {{'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}};
+            
+            System.out.println("Puzzle slave array created");
+    
+            callback.onYourTurn(puzzleSlave);
+    
+            System.out.println("issued callback");
+        } catch (Exception e) {
+            System.out.println("Error issuing callback: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
+    
 
 }
 
