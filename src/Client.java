@@ -6,6 +6,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     private CrissCrossPuzzleInterface server;
     private String username;
     private Integer gameID;
+    boolean myTurn;
 
     public Client() throws RemoteException {
         super();
@@ -94,12 +95,11 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             System.out.println("Share this ID with your friends to join the game.");
             char[][] initialPuzzle = server.getInitialPuzzle(gameID);
             printPuzzle(initialPuzzle);
+            myTurn = true;
             playGame();
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        System.out.println("Please wait while the game starts...");
         
     }
 
@@ -111,17 +111,35 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     }
 
     private void playGame() {
+        try {
 
+            while(true){
+
+                if(myTurn) {
+                    System.out.println("Enter your guess:");
+                    String guess = System.console().readLine().toLowerCase().trim();
+                    server.playerGuess(gameID, guess);
+                }
+
+                Thread.sleep(100);
+            }
+
+      
+           
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+    
 
     @Override
     public void onYourTurn(char[][] puzzle) throws RemoteException {
-
         System.out.println("\nIt's your turn!");
         printPuzzle(puzzle);
-        
-        
+        myTurn = true;
     }
+
+
 
     private void printPuzzle(char[][] puzzle) {
 
@@ -129,7 +147,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             for (int j = 0; j < puzzle[i].length; j++) {
                 System.out.print(puzzle[i][j]);
             }
-            System.out.println("\n");
+            System.out.println();
         }
     }
 

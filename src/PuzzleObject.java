@@ -117,7 +117,6 @@ public class PuzzleObject {
         return players.get(activePlayer);
     }
 
-
     public char[][] getPuzzleSlaveCopy() {
 
         lock.lock();
