@@ -46,7 +46,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     
                     case "4":
                         System.out.println("\nModifying word repository...");
-                        
+                        client.modifyWordRepo();
                         break;
     
                     case "5":
@@ -136,28 +136,30 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     private void playGame() {
         try {
-
             while(true){
 
                 if(myTurn) {
-                    System.out.println(Constants.GUESS_MESSAGE);
-                    String guess = System.console().readLine().toLowerCase().trim();
 
-                    while ((!guess.matches("^[a-zA-Z?]*$") && !guess.equals("~")) || guess.equals("")) {
-                        System.out.println("Invalid input.");
-                        System.out.println(Constants.GUESS_MESSAGE);
-                        guess = System.console().readLine().toLowerCase().trim();
-                    }
+                    String guess = getValidGuess();
 
-                    if (!guess.equals("~")){
+                    while (!guess.equals("~")){
 
                         if (guess.charAt(0) == '?'){
 
+                            if(server.checkWord(guess.substring(1))){
+                                System.out.println("\nWord '" + guess.substring(1) + "' exists in the word repository.");
+                            } else {
+                                System.out.println("\nWord '" + guess.substring(1) + "' does not exist in the word repository.");
+                            }
+
+                            guess = getValidGuess();
+
                         } else {
+                            myTurn = false;
                             server.playerGuess(gameID, guess);
+                            break;
                         }
-
-
+                    
                     }
 
                     if (guess.equals("~")){
@@ -167,14 +169,6 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                         return;
                     }
 
-
-
-
-
-
-
-                    myTurn = false;
-                    //server.playerGuess(gameID, guess);
                 }
 
                 Thread.sleep(100);
@@ -214,6 +208,84 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             System.out.println();
         }
     }
+
+    private String getValidGuess(){
+
+        System.out.println(Constants.GUESS_MESSAGE);
+        String guess = System.console().readLine().toLowerCase().trim();
+
+        while ((!guess.matches("^[a-zA-Z?]*$") && !guess.equals("~")) || guess.equals("")) {
+            System.out.println("Invalid input.");
+            System.out.println(Constants.GUESS_MESSAGE);
+            guess = System.console().readLine().toLowerCase().trim();
+        }
+
+        return guess;
+    }
+
+    private void modifyWordRepo(){
+
+        try {
+            System.out.println(Constants.WORD_REPO_MESSAGE);
+
+            String input = System.console().readLine();
+
+            while (!input.equals("~") && (input.isEmpty() || !input.matches("^[+-?][a-zA-Z]*$"))) {
+                System.out.println("Invalid input.");
+                System.out.println(Constants.WORD_REPO_MESSAGE);
+                input = System.console().readLine();
+            }
+
+            while (!input.equals("~")) {
+
+                if (input.charAt(0) == '+') {
+
+                    if (server.addWord(input.substring(1))){ {
+                        System.out.println("\nSuccessfully added word '" + input.substring(1) + "' to the word repository.");
+                    }
+                    } else {
+                        System.out.println("\nFailed to add word '" + input.substring(1) + "' to the word repository, it may already exist.");
+                    }
+
+                } else if (input.charAt(0) == '-') {
+                    
+                    if (server.removeWord(input.substring(1))){ {
+                        System.out.println("\nSuccessfully removed word '" + input.substring(1) + "' from the word repository.");
+                    }
+                    } else {
+                        System.out.println("\nFailed to remove word '" + input.substring(1) + "' from the word repository, it may not exist.");
+                    }
+                    
+                } else if (input.charAt(0) == '?') {
+
+                    if (server.checkWord(input.substring(1))){ {
+                        System.out.println("\nWord '" + input.substring(1) + "' exists in the word repository.");
+                    }
+                    } else {
+                        System.out.println("\nWord '" + input.substring(1) + "' does not exist in the word repository.");
+                    }
+                }
+
+                System.out.println(Constants.WORD_REPO_MESSAGE);
+                input = System.console().readLine();
+
+                while (!input.equals("~") && (input.isEmpty() || !input.matches("^[+-?][a-zA-Z]*$"))) {
+                    System.out.println("Invalid input.");
+                    System.out.println(Constants.WORD_REPO_MESSAGE);
+                    input = System.console().readLine();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+
+
 
 
 }

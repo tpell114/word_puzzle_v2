@@ -1,3 +1,4 @@
+import java.net.MalformedURLException;
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.Random;
@@ -6,9 +7,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInterface{
 
     ConcurrentHashMap<Integer, PuzzleObject> gamesMap = new ConcurrentHashMap<>();
+    WordRepositoryInterface wordRepo;
 
     protected Server() throws RemoteException {
         super();
+        try {
+            wordRepo = (WordRepositoryInterface) Naming.lookup("rmi://localhost/WordRepository");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
@@ -163,6 +170,18 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
             //handle cleanup
         }
+    }
+
+    public Boolean addWord(String word) throws RemoteException {
+        return wordRepo.addWord(word);
+    }
+
+    public Boolean removeWord(String word) throws RemoteException {
+        return wordRepo.removeWord(word);
+    }
+
+    public Boolean checkWord(String word) throws RemoteException {
+        return wordRepo.checkWord(word);
     }
 
 }

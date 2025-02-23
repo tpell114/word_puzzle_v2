@@ -40,7 +40,7 @@ public class WordRepository extends UnicastRemoteObject implements WordRepositor
     }
 
     @Override
-    public boolean addWord(String word) throws RemoteException {
+    public Boolean addWord(String word) throws RemoteException {
         if (!words.contains(word.toLowerCase())) {
             words.add(word.toLowerCase());
             Collections.sort(words);
@@ -50,12 +50,12 @@ public class WordRepository extends UnicastRemoteObject implements WordRepositor
     }
 
     @Override
-    public boolean removeWord(String word) throws RemoteException {
+    public Boolean removeWord(String word) throws RemoteException {
         return words.remove(word.toLowerCase());
     }
 
     @Override
-    public boolean checkWord(String word) throws RemoteException {
+    public Boolean checkWord(String word) throws RemoteException {
         return words.contains(word.toLowerCase());
     }
 
