@@ -4,6 +4,7 @@ import java.rmi.server.UnicastRemoteObject;
 public class Client extends UnicastRemoteObject implements ClientCallbackInterface {
 
     private CrissCrossPuzzleInterface server;
+    private AccountServiceInterface accountService;
     private String username;
     private Integer gameID;
     boolean myTurn;
@@ -21,6 +22,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
         try {
             client.server = (CrissCrossPuzzleInterface)Naming.lookup("rmi://localhost:1099/Server");
+            client.accountService = (AccountServiceInterface)Naming.lookup("rmi://localhost:1099/AccountService");
 
             client.userSignIn();
 
@@ -41,7 +43,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                 
                     case "3":
                         System.out.println("\nViewing statistics...");
-                        
+                        client.viewStats();
                         break;
     
                     case "4":
@@ -65,10 +67,19 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
 
     private void userSignIn() {
-        System.out.println(Constants.USER_SIGN_IN_MESSAGE);
-        this.username = System.console().readLine();
-        System.out.println("Welcome " + this.username + "!");
-        //do nothing right now
+
+        try {
+            System.out.println(Constants.USER_SIGN_IN_MESSAGE);
+            this.username = System.console().readLine();
+
+            if(accountService.registerUser(username)){
+                System.out.println("\nWelcome, " + username + "!");
+            } else {
+                System.out.println("\nWelcome back, " + username + "!");
+            }
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private void startGame() {
@@ -282,7 +293,15 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     }
 
+    private void viewStats(){
 
+        try {
+            System.out.println("Your current score is: " + accountService.getUserScore(username));
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+    }
 
 
 

@@ -13,37 +13,6 @@ public class AccountService extends UnicastRemoteObject implements AccountServic
         userScores = new ConcurrentHashMap<>();
     }
 
-    @Override
-    public boolean registerUser(String username) throws RemoteException {
-        if (!userScores.containsKey(username)) {
-            userScores.put(username, 0); // Start with score 0
-            System.out.println("User registered: " + username);
-            return true;
-        }
-        return false; // User already exists
-    }
-
-    @Override
-    public int getUserScore(String username) throws RemoteException {
-        return userScores.getOrDefault(username, 0);
-    }
-
-    @Override
-    public void updateUserScore(String username, boolean won) throws RemoteException {
-        userScores.computeIfPresent(username, (k, v) -> v + (won ? 1 : -1));
-        System.out.println("Updated score for " + username + ": " + userScores.get(username));
-    }
-
-    @Override
-    public String getUserStats(String username) throws RemoteException {
-        return "Player: " + username + ", Score: " + getUserScore(username);
-    }
-
-    @Override
-    public List<String> getAllUsers() throws RemoteException {
-        return new ArrayList<>(userScores.keySet()); // Return list of usernames
-    }
-
     public static void main(String[] args) {
         try {
             AccountService service = new AccountService();
@@ -53,4 +22,39 @@ public class AccountService extends UnicastRemoteObject implements AccountServic
             e.printStackTrace();
         }
     }
+
+    @Override
+    public Boolean registerUser(String username) throws RemoteException {
+        if (!userScores.containsKey(username)) {
+            userScores.put(username, 0);
+            System.out.println("User registered: " + username);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Integer getUserScore(String username) throws RemoteException {
+        return userScores.get(username);
+    }
+
+    @Override
+    public void updateUserScore(String username, Boolean win) throws RemoteException {
+        
+        if (win) {
+            userScores.put(username, userScores.get(username) + 1);
+            System.out.println("User " + username + " won the game! 1 point added to their score.");
+        } else {
+            userScores.put(username, userScores.get(username) - 1);
+            System.out.println("User " + username + " lost the game. 1 point removed from their score.");
+        }
+    }
+
+
+    @Override
+    public List<String> getAllUsers() throws RemoteException {
+        return new ArrayList<>(userScores.keySet());
+    }
+
+    
 }
