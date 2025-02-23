@@ -1,5 +1,7 @@
 import java.rmi.*;
 import java.rmi.server.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AccountService extends UnicastRemoteObject implements AccountServiceInterface {
@@ -35,6 +37,11 @@ public class AccountService extends UnicastRemoteObject implements AccountServic
     @Override
     public String getUserStats(String username) throws RemoteException {
         return "Player: " + username + ", Score: " + getUserScore(username);
+    }
+
+    @Override
+    public List<String> getAllUsers() throws RemoteException {
+        return new ArrayList<>(userScores.keySet()); // Return list of usernames
     }
 
     public static void main(String[] args) {
