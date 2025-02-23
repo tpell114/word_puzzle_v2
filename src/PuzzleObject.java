@@ -266,5 +266,15 @@ public class PuzzleObject {
         
     }
 
+    public Boolean removePlayer(String player){
+
+        this.players.remove(player);
+
+        if(this.players.isEmpty()){
+            return true;
+        }
+
+        return false;
+    }
 
 }

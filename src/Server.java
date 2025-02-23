@@ -24,17 +24,8 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     }
 
-    /* 
-    public Integer startGame(ClientCallbackInterface client) throws RemoteException {
-
-        return 5;
-    }
-    */
 
 
-
-
-    
     public Integer startGame(String username, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException {
 
         
@@ -60,9 +51,17 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         throw new RemoteException("Server is full. Please try again later.");
     }
     
-    public void joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
-        gamesMap.get(gameID).addPlayer(username, client);
-        System.out.println("Added player: " + username + " to game ID: " + gameID);
+    public Boolean joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
+        //gamesMap.get(gameID).addPlayer(username, client);
+        //System.out.println("Added player: " + username + " to game ID: " + gameID);
+
+        if(gamesMap.containsKey(gameID)){
+            gamesMap.get(gameID).addPlayer(username, client);
+            System.out.println("Added player: " + username + " to game ID: " + gameID);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public char[][] getInitialPuzzle(Integer gameID) throws RemoteException {
@@ -76,10 +75,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     public void playerGuess(Integer gameID, String guess) throws RemoteException {
 
         System.out.println("Received guess: " + guess + " for game ID: " + gameID);
-
         PuzzleObject game = gamesMap.get(gameID);
-        ClientCallbackInterface callbackCurrentPlayer = game.getActivePlayerCallback();
-        ClientCallbackInterface callbackNextPlayer;
         String trimmedGuess = guess.trim();
         Boolean solvedFlag;
 
@@ -90,25 +86,12 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
-                        //handle game loss
+                        handleGameLoss(game);
                     } else {
-
-                        String currentPlayer = game.getActivePlayer();
-                        game.incrementActivePlayer();
-
-                        if (currentPlayer.equals(game.getActivePlayer())) {
-                            callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            System.out.println("Single Player -> Issued callback to player: " + game.getActivePlayer());
-                        } else {
-                            callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            callbackNextPlayer = game.getActivePlayerCallback();
-                            callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
-                        }
-                        
+                        handleGameRunning(game);
                     }
                 } else {
-                    //handle game win
+                    handleGameWin(game);
                 }
             } else {    //player guessed a word
 
@@ -116,33 +99,71 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
-                        //handle game loss
+                        handleGameLoss(game);
                     } else {
-                        String currentPlayer = game.getActivePlayer();
-                        game.incrementActivePlayer();
-
-                        if (currentPlayer.equals(game.getActivePlayer())) {
-                            callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            System.out.println("Single Player -> Issued callback to player: " + game.getActivePlayer());
-                        } else {
-                            callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            callbackNextPlayer = game.getActivePlayerCallback();
-                            callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
-                            System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
-                        }
+                        handleGameRunning(game);
                     }
                 } else {
-                    //handle game win
+                    handleGameWin(game);
                 }
             }
-
 
         } catch (Exception e) {
             System.out.println("Error issuing callback: " + e.getMessage());
             e.printStackTrace();
         }
     }
+
+    private void handleGameRunning(PuzzleObject game){
+
+        ClientCallbackInterface callbackCurrentPlayer = game.getActivePlayerCallback();
+        ClientCallbackInterface callbackNextPlayer;
+        String currentPlayer = game.getActivePlayer();
+        game.incrementActivePlayer();
+
+        try {
+            if (currentPlayer.equals(game.getActivePlayer())) {
+                callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                System.out.println("Single Player -> Issued callback to player: " + game.getActivePlayer());
+            } else {
+                callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                callbackNextPlayer = game.getActivePlayerCallback();
+                callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
+            } 
+        } catch (Exception e) {
+            System.out.println("Error issuing callback: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void handleGameWin(PuzzleObject game){
+
+        
+
+    }
+
+    private void handleGameLoss(PuzzleObject game){
+
+
+
+    }
     
+    public void playerQuit(Integer gameID, String player) throws RemoteException {
+
+        PuzzleObject game = gamesMap.get(gameID);
+
+        if(!gamesMap.get(gameID).removePlayer(player)){
+            System.out.println("Removed player: " + player + " from game ID: " + gameID);
+            game.incrementActivePlayer();
+            ClientCallbackInterface callback = game.getActivePlayerCallback();
+            callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+        } else {
+            System.out.println("No more players in game ID: " + gameID);
+
+            //handle cleanup
+        }
+    }
 
 }
 

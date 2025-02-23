@@ -92,8 +92,6 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
 
         try {
-            
-            //gameID = server.startGame(this);
 
             gameID = server.startGame(this.username, this, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
             System.out.println("\nStarted game with ID: " + gameID);
@@ -113,17 +111,27 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     private void joinGame(){
 
         try {
-            System.out.println("\nEnter the ID of the game you would like to join: ");
+            System.out.println("\nEnter the ID of the game you would like to join. Or enter 0 to return to the main menu: ");
             this.gameID = Integer.valueOf(System.console().readLine());
-            server.joinGame(gameID, this.username, this);
+
+            while(!server.joinGame(gameID, this.username, this)){
+
+                if(this.gameID == 0){
+                    return;
+                }
+
+                System.out.println("Invalid game ID.");
+                System.out.println("\nEnter the ID of the game you would like to join. Or enter 0 to return to the main menu: ");
+                this.gameID = Integer.valueOf(System.console().readLine());
+            }
+
             System.out.println("You have joined game ID: " + gameID
                             + "\nPlease wait for your turn.");
             playGame();
-        } catch (Exception e) {
 
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        
+        } 
     }
 
     private void playGame() {
@@ -141,8 +149,32 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                         guess = System.console().readLine().toLowerCase().trim();
                     }
 
+                    if (!guess.equals("~")){
+
+                        if (guess.charAt(0) == '?'){
+
+                        } else {
+                            server.playerGuess(gameID, guess);
+                        }
+
+
+                    }
+
+                    if (guess.equals("~")){
+
+                        myTurn = false;  //maybe?
+                        server.playerQuit(gameID, this.username);
+                        return;
+                    }
+
+
+
+
+
+
+
                     myTurn = false;
-                    server.playerGuess(gameID, guess);
+                    //server.playerGuess(gameID, guess);
                 }
 
                 Thread.sleep(100);
