@@ -33,18 +33,23 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                         System.out.println("\nStarting a new game...");
                         client.startGame();
                         break;
-                
+
                     case "2":
+                        System.out.println("\nJoining a game...");
+                        client.joinGame();
+                        break;
+                
+                    case "3":
                         System.out.println("\nViewing statistics...");
                         
                         break;
     
-                    case "3":
+                    case "4":
                         System.out.println("\nModifying word repository...");
                         
                         break;
     
-                    case "4":
+                    case "5":
                         System.out.println("\nGoodbye!");
     
                         exitFlag = true;
@@ -107,9 +112,18 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     private void joinGame(){
 
-        System.out.println("\nEnter the ID of the game you would like to join: ");
-        String gameID = System.console().readLine();
+        try {
+            System.out.println("\nEnter the ID of the game you would like to join: ");
+            this.gameID = Integer.valueOf(System.console().readLine());
+            server.joinGame(gameID, this.username, this);
+            System.out.println("You have joined game ID: " + gameID
+                            + "\nPlease wait for your turn.");
+            playGame();
+        } catch (Exception e) {
 
+            e.printStackTrace();
+        }
+        
     }
 
     private void playGame() {
@@ -120,6 +134,13 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                 if(myTurn) {
                     System.out.println(Constants.GUESS_MESSAGE);
                     String guess = System.console().readLine().toLowerCase().trim();
+
+                    while ((!guess.matches("^[a-zA-Z?]*$") && !guess.equals("~")) || guess.equals("")) {
+                        System.out.println("Invalid input.");
+                        System.out.println(Constants.GUESS_MESSAGE);
+                        guess = System.console().readLine().toLowerCase().trim();
+                    }
+
                     myTurn = false;
                     server.playerGuess(gameID, guess);
                 }
@@ -139,6 +160,15 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
         myTurn = true;
+    }
+
+    @Override
+    public void onOpponentTurn(char[][] puzzle, Integer guessCounter) throws RemoteException {
+        System.out.println("\nIt's your opponent's turn!\n");
+        printPuzzle(puzzle);
+        System.out.println("Counter: " + guessCounter);
+        System.out.println("\nPlease wait for your turn.");
+        myTurn = false;
     }
 
 

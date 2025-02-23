@@ -1,5 +1,4 @@
 import java.rmi.Naming;
-import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -25,8 +24,6 @@ public class PuzzleObject {
         this.gameID = gameID;
         this.numWords = numWords;
         this.difficultyFactor = difficultyFactor;
-        
-        
         
         initPuzzle();
     }
@@ -120,6 +117,22 @@ public class PuzzleObject {
     public ClientCallbackInterface getActivePlayerCallback() {
         return players.get(activePlayer);
     }
+
+    public void incrementActivePlayer() {
+        lock.lock();
+        try {
+            List<String> keys = new ArrayList<>(players.keySet());
+            if (!keys.isEmpty()) {
+                int currentIndex = keys.indexOf(activePlayer);
+                int nextIndex = (currentIndex + 1) % keys.size();
+                activePlayer = keys.get(nextIndex);
+                System.out.println("Next player: " + activePlayer);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+    
 
     public Integer getGuessCounter(){
         return guessCounter;
