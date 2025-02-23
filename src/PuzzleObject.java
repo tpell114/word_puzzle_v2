@@ -1,3 +1,5 @@
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -5,6 +7,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PuzzleObject {
 
     private final Lock lock = new ReentrantLock();
+    private WordRepositoryInterface wordRepo;
     private Integer gameID;
     private Integer numWords;
     private Integer difficultyFactor;
@@ -22,9 +25,10 @@ public class PuzzleObject {
         this.gameID = gameID;
         this.numWords = numWords;
         this.difficultyFactor = difficultyFactor;
-        this.guessCounter = 0;
-
-        initPuzzleTest(); //for testing
+        
+        
+        
+        initPuzzle();
     }
 
     public void addPlayer(String username, ClientCallbackInterface client) {
@@ -117,6 +121,10 @@ public class PuzzleObject {
         return players.get(activePlayer);
     }
 
+    public Integer getGuessCounter(){
+        return guessCounter;
+    }
+
     public char[][] getPuzzleSlaveCopy() {
 
         lock.lock();
@@ -131,14 +139,119 @@ public class PuzzleObject {
 
     }
     
-    private void initPuzzleTest() {
+    private void initPuzzle() {
 
-        this.puzzleMaster = new char[][]{{'A', 'B', 'C', 'D'}, {'E', 'F', 'G', 'H'}, {'I', 'J', 'K', 'L'}, {'M', 'N', 'O', 'P'}};
-        this.puzzleSlave = new char[][]{{'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}};
+        try {
+            this.wordRepo = (WordRepositoryInterface) Naming.lookup("rmi://localhost/WordRepository");
+            this.stem = this.wordRepo.getWord((this.numWords - 1) * 2);
+            this.guessCounter = this.stem.length() * difficultyFactor;
+
+            String word;
+            for (int i = 0; i < stem.length(); i += 2) {
+                word = this.wordRepo.getWord(String.valueOf(stem.charAt(i)));
+                horizontalWords.add(word);
+                this.guessCounter += word.length() * difficultyFactor;
+                if (horizontalWords.size() == numWords - 1) break;
+            }
+
+            initPuzzleMaster();
+            initPuzzleSlave();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
+    /**
+     * Initializes the puzzleMaster 2D array with the given stem and horizontal words.
+     * The puzzleMaster is a 2D array of characters, where each row represents a line
+     * in the puzzle and each column represents a letter in the puzzle.
+     * The puzzleMaster is initialized such that each row has enough columns to fit the
+     * longest horizontal word, and each column is initialized with a '.' character.
+     * The stem is then placed vertically in the middle of the puzzleMaster, and each
+     * horizontal word is placed at the correct position in the puzzleMaster such that
+     * the intersecting letter of the horizontal word and the stem lines up.
+     */
+    private void initPuzzleMaster(){
 
+        System.out.println(stem);
+        System.out.println(horizontalWords);
+
+        int ySize = stem.length();
+
+        String longest = null;
+        for (String word : horizontalWords) {
+            if (longest == null || word.length() > longest.length()) {
+                longest = word;
+            }
+        }
+
+        int xSize = longest.length() * 2;
+        this.puzzleMaster = new char[ySize][xSize];
+
+        for (int i = 0; i < ySize; i++) {
+            for (int j = 0; j < xSize; j++) {
+                puzzleMaster[i][j] = '.';
+            }
+        }
+
+        for (int i = 0; i < ySize; i++) {
+            puzzleMaster[i][xSize/2] = stem.charAt(i);
+        }
+
+        int stemIndex = 0;
+        for (int i = 0; i < horizontalWords.size(); i++) {
+
+            String word = horizontalWords.get(i);
+            char intersectChar = stem.charAt(stemIndex);
+            int offset = word.indexOf(intersectChar);
+            int startColumn = xSize/2 - offset;
+
+            for (int j = 0; j < word.length(); j++) {
+                puzzleMaster[stemIndex][startColumn + j] = word.charAt(j);
+            }
+
+            stemIndex += 2;
+        }
+     
+
+        for (char[] row : puzzleMaster) {
+            System.out.println(new String(row));
+        }
+
+    }
+
+    /**
+     * Initializes the puzzleSlave 2D array with the same dimensions as the
+     * puzzleMaster. The puzzleSlave is initialized such that any '.' character
+     * in the puzzleMaster is replaced with a '.' character in the puzzleSlave
+     * and any other character in the puzzleMaster is replaced with a '-'
+     * character in the puzzleSlave.
+     */
+    private void initPuzzleSlave(){
+
+        puzzleSlave = new char[puzzleMaster.length][puzzleMaster[0].length];
+
+        
+        for (int i = 0; i < puzzleSlave.length; i++) {
+            for (int j = 0; j < puzzleSlave[i].length; j++) {
+                if (puzzleMaster[i][j] == '.') {
+                    puzzleSlave[i][j] = '.';
+                } else {
+                    puzzleSlave[i][j] = '-';
+                }
+            }
+        }
+        
+        /*
+        for (char[] row : puzzleSlave) {
+            System.out.println(new String(row));
+        }
+        */
+        
+    }
 
 
 }

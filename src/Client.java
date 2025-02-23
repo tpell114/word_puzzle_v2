@@ -92,9 +92,11 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
             gameID = server.startGame(this.username, this, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
             System.out.println("\nStarted game with ID: " + gameID);
-            System.out.println("Share this ID with your friends to join the game.");
+            System.out.println("Share this ID with your friends to join the game.\n");
+            System.out.println("It's your turn!\n");
             char[][] initialPuzzle = server.getInitialPuzzle(gameID);
             printPuzzle(initialPuzzle);
+            System.out.println("Counter: " + server.getGuessCounter(gameID));
             myTurn = true;
             playGame();
         } catch (Exception e) {
@@ -116,15 +118,14 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             while(true){
 
                 if(myTurn) {
-                    System.out.println("Enter your guess:");
+                    System.out.println(Constants.GUESS_MESSAGE);
                     String guess = System.console().readLine().toLowerCase().trim();
+                    myTurn = false;
                     server.playerGuess(gameID, guess);
                 }
 
                 Thread.sleep(100);
             }
-
-      
            
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,9 +134,10 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     
 
     @Override
-    public void onYourTurn(char[][] puzzle) throws RemoteException {
-        System.out.println("\nIt's your turn!");
+    public void onYourTurn(char[][] puzzle, Integer guessCounter) throws RemoteException {
+        System.out.println("\nIt's your turn!\n");
         printPuzzle(puzzle);
+        System.out.println("Counter: " + guessCounter);
         myTurn = true;
     }
 

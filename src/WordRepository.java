@@ -60,7 +60,7 @@ public class WordRepository extends UnicastRemoteObject implements WordRepositor
     }
 
     @Override
-    public String getRandomWord(int minLength) throws RemoteException {
+    public String getWord(int minLength) throws RemoteException {
         
         Random random = new Random();
         int index = random.nextInt(words.size());
@@ -73,4 +73,24 @@ public class WordRepository extends UnicastRemoteObject implements WordRepositor
 
         return word;
     }
+
+    @Override
+    public String getWord(String contains) throws RemoteException {
+        
+        Random random = new Random();
+        int index = random.nextInt(words.size());
+        String word = words.get(index);
+
+        while(!word.contains(String.valueOf(contains.toLowerCase()))){
+            index = random.nextInt(words.size());
+            word = words.get(index);
+        }
+
+        return word;
+    }
+
+
+
+
+
 }

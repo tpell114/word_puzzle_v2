@@ -67,27 +67,53 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     public char[][] getInitialPuzzle(Integer gameID) throws RemoteException {
         return gamesMap.get(gameID).getPuzzleSlaveCopy();
     }
+
+    public Integer getGuessCounter(Integer gameID) throws RemoteException {
+        return gamesMap.get(gameID).getGuessCounter();
+    }
     
     public void playerGuess(Integer gameID, String guess) throws RemoteException {
-    
-        PuzzleObject game = gamesMap.get(gameID);
-    
+
         System.out.println("Received guess: " + guess + " for game ID: " + gameID);
     
+        PuzzleObject game = gamesMap.get(gameID);
         ClientCallbackInterface callback = game.getActivePlayerCallback();
-    
-        System.out.println("Callback object: " + callback);
-    
+        String trimmedGuess = guess.trim();
+        Boolean solvedFlag;
+
+
         try {
-            System.out.println("Entering try block");
-    
-            char[][] puzzleSlave = {{'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}, {'X', 'X', 'X', 'X'}};
-            
-            System.out.println("Puzzle slave array created");
-    
-            callback.onYourTurn(puzzleSlave);
-    
-            System.out.println("issued callback");
+            if (trimmedGuess.length() == 1) {
+
+                solvedFlag = game.guessChar(trimmedGuess.charAt(0));
+
+                if (!solvedFlag) {
+                    if (game.getGuessCounter() == 0) {
+                        //handle game loss
+                    } else {
+                        callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                        System.out.println("Issued callback to player: " + game.getActivePlayer());
+                    }
+                } else {
+                    //handle game win
+                }
+            } else {
+
+                solvedFlag = game.guessWord(trimmedGuess);
+
+                if (!solvedFlag) {
+                    if (game.getGuessCounter() == 0) {
+                        //handle game loss
+                    } else {
+                        callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                        System.out.println("Issued callback to player: " + game.getActivePlayer());
+                    }
+                } else {
+                    //handle game win
+                }
+            }
+
+
         } catch (Exception e) {
             System.out.println("Error issuing callback: " + e.getMessage());
             e.printStackTrace();

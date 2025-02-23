@@ -11,7 +11,7 @@ public class Constants {
                                                         +"=======================\n"
                                                         +"Please enter your name:\n";
 
-    public static final String GUESS_MESSAGE = "\nPlease guess a letter or a word (enter ~ to return to menu):"
+    public static final String GUESS_MESSAGE = "\nPlease guess a letter or a word (enter ~ to return to menu)\n"
                                                 + "you can also verify if a word exists by prefixing a word with '?' eg. ?apple\n";
 
     public static final String WORD_REPO_MESSAGE = "\nAdd words to the repo by prefixing a word with '+'  eg. +apple\n"
