@@ -167,7 +167,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
                         } else {
                             myTurn = false;
-                            server.playerGuess(gameID, guess);
+                            server.playerGuess(this.username, gameID, guess);
                             break;
                         }
                     
@@ -192,18 +192,20 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     
 
     @Override
-    public void onYourTurn(char[][] puzzle, Integer guessCounter) throws RemoteException {
+    public void onYourTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
         System.out.println("\nIt's your turn!\n");
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
+        System.out.println("Word guessed: " + wordCounter);
         myTurn = true;
     }
 
     @Override
-    public void onOpponentTurn(char[][] puzzle, Integer guessCounter) throws RemoteException {
+    public void onOpponentTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
         System.out.println("\nIt's your opponent's turn!\n");
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
+        System.out.println("Word guessed: " + wordCounter);
         System.out.println("\nPlease wait for your turn.");
         myTurn = false;
     }

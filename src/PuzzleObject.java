@@ -12,14 +12,17 @@ public class PuzzleObject {
     private Integer difficultyFactor;
     private Integer guessCounter;
     private Map<String, ClientCallbackInterface> players = new LinkedHashMap<>();
+    private Map<String, Integer> scores = new HashMap<>(); // <username, words guessed>
     private String activePlayer;
     private String stem;
     private List<String> horizontalWords = new ArrayList<>();
+    private List<String> completedWords = new ArrayList<>();
     private char[][] puzzleMaster;
     private char[][] puzzleSlave;
 
     public PuzzleObject(String username, ClientCallbackInterface client, Integer gameID, Integer numWords, Integer difficultyFactor) {
         this.players.put(username, client);
+        this.scores.put(username, 0);
         this.activePlayer = username;
         this.gameID = gameID;
         this.numWords = numWords;
@@ -30,6 +33,7 @@ public class PuzzleObject {
 
     public void addPlayer(String username, ClientCallbackInterface client) {
         this.players.put(username, client);
+        this.scores.put(username, 0);
     }
 
     /**
@@ -42,7 +46,7 @@ public class PuzzleObject {
      * @return true if the puzzleSlave matches the puzzleMaster after the guess,
      *         indicating the puzzle is solved; otherwise, returns false.
      */
-    public Boolean guessChar(char guess){
+    public Boolean guessChar(String username, char guess){
 
         System.out.println("Game ID: " + gameID + " guessing " + guess);
         this.guessCounter--;
@@ -50,8 +54,31 @@ public class PuzzleObject {
         for (int i = 0; i < puzzleMaster.length; i++) {
             for (int j = 0; j < puzzleMaster[i].length; j++) {
                 if (puzzleMaster[i][j] == guess) {
-                    //System.out.println("Found " + guess + " at (" + i + ", " + j + ")");
                     puzzleSlave[i][j] = guess;
+
+
+                    String masterRow = new String(puzzleMaster[i]).replaceAll("^-+|-+$", "");
+                    String slaveRow = new String(puzzleSlave[i]).replaceAll("^-+|-+$", "");
+
+                    if(slaveRow.equals(masterRow) && horizontalWords.contains(slaveRow) && !completedWords.contains(slaveRow)){
+                        completedWords.add(slaveRow);
+                        scores.put(username, scores.get(username) + 1);
+                    }
+
+                    Integer middleColumn = puzzleMaster[i].length/2;
+                    String masterColumn = "";
+                    String slaveColumn = "";
+
+                    for (int k = 0; k < puzzleMaster.length; k++) {
+                        
+                        masterColumn += puzzleMaster[k][middleColumn];
+                        slaveColumn += puzzleSlave[k][middleColumn];
+
+                        if (slaveColumn.equals(masterColumn) && !completedWords.contains(slaveColumn)){
+                            completedWords.add(slaveColumn);
+                            scores.put(username, scores.get(username) + 1);
+                        }
+                    }
                 }
             }
         }
@@ -73,18 +100,19 @@ public class PuzzleObject {
      * @return true if the puzzleSlave matches the puzzleMaster after the guess,
      *         indicating the puzzle is solved; otherwise, returns false.
      */
-    public Boolean guessWord(String guess){
+    public Boolean guessWord(String username, String guess){
 
         System.out.println("Game ID: " + gameID + " guessing " + guess);
         this.guessCounter--;
 
         if (guess.equals(this.stem)) {
+
             for (int i = 0; i < puzzleMaster.length; i++) {
                 puzzleSlave[i][puzzleMaster[i].length/2] = stem.charAt(i);
             }
-        } else if (horizontalWords.contains(guess)) {
+            scores.put(username, scores.get(username) + 1);
 
-            //System.out.println("Found " + guess);
+        } else if (horizontalWords.contains(guess)) {
 
             for (int i = 0; i < puzzleMaster.length; i += 2) {
 
@@ -98,6 +126,7 @@ public class PuzzleObject {
                     for (int j = 0; j < puzzleMaster[i].length; j++) {
                         puzzleSlave[i][j] = puzzleMaster[i][j];
                     }
+                    scores.put(username, scores.get(username) + 1);
                 }
             }
 
@@ -266,15 +295,20 @@ public class PuzzleObject {
         
     }
 
-    public Boolean removePlayer(String player){
+    public Boolean removePlayer(String username){
 
-        this.players.remove(player);
+        this.players.remove(username);
+        this.scores.remove(username);
 
         if(this.players.isEmpty()){
             return true;
         }
 
         return false;
+    }
+
+    public Integer getWordsGuessed(String username){
+        return this.scores.get(username);
     }
 
 }

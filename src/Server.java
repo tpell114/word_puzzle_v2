@@ -78,7 +78,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         return gamesMap.get(gameID).getGuessCounter();
     }
     
-    public void playerGuess(Integer gameID, String guess) throws RemoteException {
+    public void playerGuess(String username, Integer gameID, String guess) throws RemoteException {
 
         System.out.println("Received guess: " + guess + " for game ID: " + gameID);
         PuzzleObject game = gamesMap.get(gameID);
@@ -88,7 +88,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         try {
             if (trimmedGuess.length() == 1){    //player guessed a character
 
-                solvedFlag = game.guessChar(trimmedGuess.charAt(0));
+                solvedFlag = game.guessChar(username, trimmedGuess.charAt(0));
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
@@ -101,7 +101,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                 }
             } else {    //player guessed a word
 
-                solvedFlag = game.guessWord(trimmedGuess);
+                solvedFlag = game.guessWord(username, trimmedGuess);
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
@@ -126,15 +126,16 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         ClientCallbackInterface callbackNextPlayer;
         String currentPlayer = game.getActivePlayer();
         game.incrementActivePlayer();
+        String nextPlayer = game.getActivePlayer();
 
         try {
             if (currentPlayer.equals(game.getActivePlayer())) {
-                callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
                 System.out.println("Single Player -> Issued callback to player: " + game.getActivePlayer());
             } else {
-                callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
                 callbackNextPlayer = game.getActivePlayerCallback();
-                callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+                callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(nextPlayer));
                 System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
             } 
         } catch (Exception e) {
@@ -155,19 +156,18 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     }
     
-    public void playerQuit(Integer gameID, String player) throws RemoteException {
+    public void playerQuit(Integer gameID, String username) throws RemoteException {
 
         PuzzleObject game = gamesMap.get(gameID);
 
-        if(!gamesMap.get(gameID).removePlayer(player)){
-            System.out.println("Removed player: " + player + " from game ID: " + gameID);
+        if(!gamesMap.get(gameID).removePlayer(username)){
+            System.out.println("Removed player: " + username + " from game ID: " + gameID);
             game.incrementActivePlayer();
             ClientCallbackInterface callback = game.getActivePlayerCallback();
-            callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter());
+            callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
         } else {
             System.out.println("No more players in game ID: " + gameID);
-
-            //handle cleanup
+            gamesMap.remove(gameID);
         }
     }
 
@@ -182,6 +182,8 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     public Boolean checkWord(String word) throws RemoteException {
         return wordRepo.checkWord(word);
     }
+
+
 
 }
 
