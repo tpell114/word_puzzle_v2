@@ -27,24 +27,11 @@ public class Scoreboard extends UnicastRemoteObject implements ScoreboardInterfa
         }
     }
 
-    /*
     public List<Map.Entry<String, Integer>> getScores(Integer n) throws RemoteException {
 
         Map<String, Integer> scores = accountService.getAllUsers();
         List<Map.Entry<String, Integer>> entriesList = new ArrayList<>(scores.entrySet());
-        entriesList.sort(Map.Entry.<String, Integer>comparingByValue().reversed());
-        List<Map.Entry<String, Integer>> topN = entriesList.stream().limit(n).collect(Collectors.toList());
-
-        return topN;
-    }
-    */
-    public List<Map.Entry<String, Integer>> getScores(Integer n) throws RemoteException {
-
-        Map<String, Integer> scores = accountService.getAllUsers();
-        List<Map.Entry<String, Integer>> entriesList = new ArrayList<>(scores.entrySet());
-        entriesList.sort(Map.Entry.<String, Integer>comparingByValue().reversed());
-        
-        // Create a list of serializable AbstractMap.SimpleEntry objects
+        entriesList.sort(Map.Entry.<String, Integer>comparingByValue().reversed());  
         List<Map.Entry<String, Integer>> topN = entriesList.stream().limit(n).map(entry -> new AbstractMap.SimpleEntry<>(entry.getKey(), entry.getValue())).collect(Collectors.toList());
     
         return topN;
