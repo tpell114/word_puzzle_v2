@@ -1,7 +1,9 @@
 import java.rmi.*;
 import java.rmi.server.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AccountService extends UnicastRemoteObject implements AccountServiceInterface {
@@ -43,10 +45,9 @@ public class AccountService extends UnicastRemoteObject implements AccountServic
         userScores.put(username, userScores.get(username) + value);
     }
 
-
     @Override
-    public List<String> getAllUsers() throws RemoteException {
-        return new ArrayList<>(userScores.keySet());
+    public Map<String, Integer> getAllUsers() throws RemoteException {
+        return new HashMap<>(userScores);
     }
 
     

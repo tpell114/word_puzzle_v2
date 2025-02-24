@@ -62,8 +62,6 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     }
     
     public Boolean joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
-        //gamesMap.get(gameID).addPlayer(username, client);
-        //System.out.println("Added player: " + username + " to game ID: " + gameID);
 
         if(gamesMap.containsKey(gameID)){
             gamesMap.get(gameID).addPlayer(username, client);

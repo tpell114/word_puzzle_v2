@@ -1,11 +1,13 @@
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 import java.util.Map;
 
 public class Client extends UnicastRemoteObject implements ClientCallbackInterface {
 
     private CrissCrossPuzzleInterface server;
     private AccountServiceInterface accountService;
+    private ScoreboardInterface scoreboard;
     private String username;
     private Integer gameID;
     Boolean myTurn;
@@ -25,6 +27,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         try {
             client.server = (CrissCrossPuzzleInterface)Naming.lookup("rmi://localhost:1099/Server");
             client.accountService = (AccountServiceInterface)Naming.lookup("rmi://localhost:1099/AccountService");
+            client.scoreboard = (ScoreboardInterface)Naming.lookup("rmi://localhost:1099/ScoreboardService");
 
             client.userSignIn();
 
@@ -47,13 +50,18 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                         System.out.println("\nViewing statistics...");
                         client.viewStats();
                         break;
-    
+
                     case "4":
+                        System.out.println("\nViewing leaderboard...");
+                        client.viewScoreboard();
+                        break;
+    
+                    case "5":
                         System.out.println("\nModifying word repository...");
                         client.modifyWordRepo();
                         break;
     
-                    case "5":
+                    case "6":
                         System.out.println("\nGoodbye!");
                         client.handleExit();
                         exitFlag = true;
@@ -112,8 +120,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             System.out.println("\nStarted game with ID: " + gameID);
             System.out.println("Share this ID with your friends to join the game.\n");
             System.out.println("It's your turn!\n");
-            char[][] initialPuzzle = server.getInitialPuzzle(gameID);
-            printPuzzle(initialPuzzle);
+            printPuzzle(server.getInitialPuzzle(gameID));
             System.out.println("Counter: " + server.getGuessCounter(gameID));
             myTurn = true;
             gameOverFlag = false;
@@ -141,8 +148,10 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                 this.gameID = Integer.valueOf(System.console().readLine());
             }
 
-            System.out.println("You have joined game ID: " + gameID
-                            + "\nPlease wait for your turn.");
+            System.out.println("You have joined game ID: " + gameID);
+            printPuzzle(server.getInitialPuzzle(gameID));
+            System.out.println("Counter: " + server.getGuessCounter(gameID));
+            System.out.println("\nPlease wait for your turn.");
             gameOverFlag = false;
             myTurn = false;
             playGame();
@@ -320,6 +329,25 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         try {
             System.out.println("Your current score is: " + accountService.getUserScore(username));
         } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void viewScoreboard(){
+
+        try {
+            List<Map.Entry<String, Integer>> topN = scoreboard.getScores(5);
+
+            System.out.println("\nScoreboard (top " + topN.size() + "):\n");
+
+            
+            for (Map.Entry<String, Integer> entry : topN) {
+                System.out.println(entry.getKey() + ": " + entry.getValue());
+            }
+            
+        } catch (RemoteException e) {
+
             e.printStackTrace();
         }
 

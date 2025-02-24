@@ -4,9 +4,10 @@ public class Constants {
     public static final String MAIN_MENU_MESSAGE = "\nSelect from the following options:\n"
                                                     +"1. Play a new game\n"
                                                     +"2. Join a game\n"
-                                                    +"3. View statistics\n"
-                                                    +"4. Modify word repository\n"
-                                                    +"5. Exit\n";
+                                                    +"3. View personal statistics\n"
+                                                    +"4. View leaderboard\n"
+                                                    +"5. Modify word repository\n"
+                                                    +"6. Exit\n";
 
     public static final String USER_SIGN_IN_MESSAGE = "\nWelcome to Word Puzzle!\n"
                                                         +"=======================\n"
