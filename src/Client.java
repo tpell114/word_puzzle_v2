@@ -55,13 +55,15 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     
                     case "5":
                         System.out.println("\nGoodbye!");
-    
+                        client.handleExit();
                         exitFlag = true;
                         break;
                 }
             }
 
         } catch (Exception e) {
+            client.handleExit();
+            System.out.println("Error: " + e.getMessage());
             e.printStackTrace();
         }
         
@@ -230,8 +232,6 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
     }
 
-
-
     private void printPuzzle(char[][] puzzle) {
 
         for (int i = 0; i < puzzle.length; i++) {
@@ -325,7 +325,16 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     }
 
+    private void handleExit(){
 
+        try {
+            UnicastRemoteObject.unexportObject(this, true);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
 
 
