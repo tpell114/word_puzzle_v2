@@ -31,14 +31,10 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
-
-
 
     public Integer startGame(String username, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException {
 
-        
         Random random = new Random();
         Integer gameID;
         long startTime = System.currentTimeMillis();
@@ -54,10 +50,8 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                                    ", Number of words: " + numWords + 
                                    ", Difficulty factor: " + difficultyFactor);
                 return gameID;
-            }
-            
+            }  
         }
-    
         throw new RemoteException("Server is full. Please try again later.");
     }
     
@@ -137,9 +131,6 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             } else {
 
                 ClientCallbackInterface callbackNextPlayer;
-
-
-                //callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
                 callbackNextPlayer = game.getActivePlayerCallback();
                 callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(nextPlayer));
                 System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
@@ -152,10 +143,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                         allPlayers.get(player).onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player));
                         System.out.println("Multiplayer -> Issued callback to player: " + player);
                     }
-
                 }
-
-
             } 
         } catch (Exception e) {
             System.out.println("Error issuing callback: " + e.getMessage());
@@ -190,7 +178,6 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             System.out.println("Error updating user scores: " + e.getMessage()); 
             e.printStackTrace();
         }
-
     }
 
     private void handleGameLoss(PuzzleObject game){

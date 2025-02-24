@@ -341,21 +341,22 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
             System.out.println("\nScoreboard (top " + topN.size() + "):\n");
 
-            
             for (Map.Entry<String, Integer> entry : topN) {
                 System.out.println(entry.getKey() + ": " + entry.getValue());
             }
             
         } catch (RemoteException e) {
-
             e.printStackTrace();
         }
-
     }
 
     private void handleExit(){
 
         try {
+            if(gameID != -1){
+                server.playerQuit(gameID, username);
+            }
+
             UnicastRemoteObject.unexportObject(this, true);
             
         } catch (Exception e) {
