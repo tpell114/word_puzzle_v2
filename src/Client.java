@@ -241,6 +241,20 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
     }
 
+    public void onGameLost(char[][] puzzle, Integer guessCounter, Integer wordCounter , Map<String, Integer> scores) throws RemoteException {
+        
+        gameOverFlag = true;
+
+        printPuzzle(puzzle);
+        System.out.println("Counter: " + guessCounter);
+        System.out.println("Word guessed: " + wordCounter);
+        System.out.println("\nGame lost. Final scores:\n");
+
+        for (String player : scores.keySet()) {
+            System.out.println(player + ": " + scores.get(player));
+        }
+    }
+
     private void printPuzzle(char[][] puzzle) {
 
         for (int i = 0; i < puzzle.length; i++) {

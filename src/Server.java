@@ -166,12 +166,11 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             }
 
             Map<String, ClientCallbackInterface> players = game.getAllPlayers();
-            Map<String, Integer> scores = game.getAllScores();
+            //Map<String, Integer> scores = game.getAllScores();
 
             for (String player : players.keySet()) {
 
-                players.get(player).onGameWin(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), scores);
-
+                players.get(player).onGameWin(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), game.getAllScores());
             }
             
         } catch (Exception e) {
@@ -182,8 +181,19 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     private void handleGameLoss(PuzzleObject game){
 
+        try {
+            Map<String, ClientCallbackInterface> players = game.getAllPlayers();
+            //Map<String, Integer> scores = game.getAllScores();
 
+            for (String player : players.keySet()) {
 
+                players.get(player).onGameLoss(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), game.getAllScores());
+            }
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
     }
     
     public void playerQuit(Integer gameID, String username) throws RemoteException {
