@@ -12,7 +12,7 @@ public class PuzzleObject {
     private Integer difficultyFactor;
     private Integer guessCounter;
     private Map<String, ClientCallbackInterface> players = new LinkedHashMap<>();
-    private Map<String, Integer> scores = new HashMap<>(); // <username, words guessed>
+    private Map<String, Integer> scores = new LinkedHashMap<>(); // <username, words guessed>
     private String activePlayer;
     private String stem;
     private List<String> horizontalWords = new ArrayList<>();
@@ -63,6 +63,10 @@ public class PuzzleObject {
                     if(slaveRow.equals(masterRow) && horizontalWords.contains(slaveRow) && !completedWords.contains(slaveRow)){
                         completedWords.add(slaveRow);
                         scores.put(username, scores.get(username) + 1);
+                        //System.out.println("master row: " + masterRow);
+                        //System.out.println("slave row: " + slaveRow);
+                        //System.out.println("completed words: " + completedWords);
+                        System.out.println("Added 1 word guessed to: " + username);
                     }
 
                     Integer middleColumn = puzzleMaster[i].length/2;
@@ -73,11 +77,15 @@ public class PuzzleObject {
                         
                         masterColumn += puzzleMaster[k][middleColumn];
                         slaveColumn += puzzleSlave[k][middleColumn];
+                    }
 
-                        if (slaveColumn.equals(masterColumn) && !completedWords.contains(slaveColumn)){
-                            completedWords.add(slaveColumn);
-                            scores.put(username, scores.get(username) + 1);
-                        }
+                    if (slaveColumn.equals(masterColumn) && !completedWords.contains(slaveColumn)){
+                        completedWords.add(slaveColumn);
+                        scores.put(username, scores.get(username) + 1);
+                        //System.out.println("master column: " + masterColumn);
+                        //System.out.println("slave column: " + slaveColumn);
+                        //System.out.println("completed words: " + completedWords);
+                        System.out.println("Added 1 word guessed to: " + username);
                     }
                 }
             }
@@ -110,7 +118,12 @@ public class PuzzleObject {
             for (int i = 0; i < puzzleMaster.length; i++) {
                 puzzleSlave[i][puzzleMaster[i].length/2] = stem.charAt(i);
             }
-            scores.put(username, scores.get(username) + 1);
+
+            if(!completedWords.contains(stem)){
+                completedWords.add(stem);
+                scores.put(username, scores.get(username) + 1);
+                System.out.println("Added 1 word guessed to: " + username);
+            }
 
         } else if (horizontalWords.contains(guess)) {
 
@@ -126,7 +139,12 @@ public class PuzzleObject {
                     for (int j = 0; j < puzzleMaster[i].length; j++) {
                         puzzleSlave[i][j] = puzzleMaster[i][j];
                     }
-                    scores.put(username, scores.get(username) + 1);
+
+                    if(!completedWords.contains(guess)){
+                        completedWords.add(guess);
+                        scores.put(username, scores.get(username) + 1);
+                        System.out.println("Added 1 word guessed to: " + username);
+                    }
                 }
             }
 
@@ -145,6 +163,10 @@ public class PuzzleObject {
 
     public ClientCallbackInterface getActivePlayerCallback() {
         return players.get(activePlayer);
+    }
+
+    public Map<String, ClientCallbackInterface> getAllPlayers() {
+        return new LinkedHashMap<>(players);
     }
 
     public void incrementActivePlayer() {
@@ -311,4 +333,21 @@ public class PuzzleObject {
         return this.scores.get(username);
     }
 
+    public List<String> getHighestScoredPlayers(){
+
+        int highestScore = Collections.max(scores.values());
+        List<String> topPlayers = new ArrayList<>();
+
+        for (String player : scores.keySet()) {
+            if (scores.get(player) == highestScore) {
+                topPlayers.add(player);
+            }
+        }
+
+        return topPlayers;
+    }
+
+    public Map<String, Integer> getAllScores(){
+        return new LinkedHashMap<>(scores);
+    }
 }

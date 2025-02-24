@@ -1,5 +1,7 @@
 import java.rmi.*;
 import java.rmi.server.*;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -7,11 +9,13 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     ConcurrentHashMap<Integer, PuzzleObject> gamesMap = new ConcurrentHashMap<>();
     WordRepositoryInterface wordRepo;
+    AccountServiceInterface accountService;
 
     protected Server() throws RemoteException {
         super();
         try {
             wordRepo = (WordRepositoryInterface) Naming.lookup("rmi://localhost/WordRepository");
+            accountService = (AccountServiceInterface) Naming.lookup("rmi://localhost:1099/AccountService");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,20 +127,37 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     private void handleGameRunning(PuzzleObject game){
 
         ClientCallbackInterface callbackCurrentPlayer = game.getActivePlayerCallback();
-        ClientCallbackInterface callbackNextPlayer;
+        
         String currentPlayer = game.getActivePlayer();
         game.incrementActivePlayer();
         String nextPlayer = game.getActivePlayer();
 
         try {
-            if (currentPlayer.equals(game.getActivePlayer())) {
+            if (currentPlayer.equals(nextPlayer)) {
                 callbackCurrentPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
                 System.out.println("Single Player -> Issued callback to player: " + game.getActivePlayer());
             } else {
-                callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
+
+                ClientCallbackInterface callbackNextPlayer;
+
+
+                //callbackCurrentPlayer.onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(currentPlayer));
                 callbackNextPlayer = game.getActivePlayerCallback();
                 callbackNextPlayer.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(nextPlayer));
                 System.out.println("Multiplayer -> Issued callback to player: " + game.getActivePlayer());
+
+                Map<String, ClientCallbackInterface> allPlayers = game.getAllPlayers();
+
+                for (String player : allPlayers.keySet()) {
+
+                    if(!player.equals(nextPlayer)){
+                        allPlayers.get(player).onOpponentTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player));
+                        System.out.println("Multiplayer -> Issued callback to player: " + player);
+                    }
+
+                }
+
+
             } 
         } catch (Exception e) {
             System.out.println("Error issuing callback: " + e.getMessage());
@@ -146,7 +167,31 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
     private void handleGameWin(PuzzleObject game){
 
-        
+        try {
+            List<String> topPlayers = game.getHighestScoredPlayers();
+
+            if (topPlayers.size() == 1){
+                accountService.updateUserScore(topPlayers.get(0), 2);
+            } else {
+                
+                for (String player : topPlayers) {
+                    accountService.updateUserScore(player, 1);
+                }
+            }
+
+            Map<String, ClientCallbackInterface> players = game.getAllPlayers();
+            Map<String, Integer> scores = game.getAllScores();
+
+            for (String player : players.keySet()) {
+
+                players.get(player).onGameWin(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), scores);
+
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Error updating user scores: " + e.getMessage()); 
+            e.printStackTrace();
+        }
 
     }
 
@@ -166,7 +211,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             ClientCallbackInterface callback = game.getActivePlayerCallback();
             callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
         } else {
-            System.out.println("No more players in game ID: " + gameID);
+            System.out.println("No more players in game ID: " + gameID + ", removing game...");
             gamesMap.remove(gameID);
         }
     }

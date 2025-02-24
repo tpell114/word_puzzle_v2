@@ -1,5 +1,6 @@
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Map;
 
 public class Client extends UnicastRemoteObject implements ClientCallbackInterface {
 
@@ -7,7 +8,8 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     private AccountServiceInterface accountService;
     private String username;
     private Integer gameID;
-    boolean myTurn;
+    Boolean myTurn;
+    Boolean gameOverFlag;
 
     public Client() throws RemoteException {
         super();
@@ -112,6 +114,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             printPuzzle(initialPuzzle);
             System.out.println("Counter: " + server.getGuessCounter(gameID));
             myTurn = true;
+            gameOverFlag = false;
             playGame();
         } catch (Exception e) {
             e.printStackTrace();
@@ -138,6 +141,8 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
             System.out.println("You have joined game ID: " + gameID
                             + "\nPlease wait for your turn.");
+            gameOverFlag = false;
+            myTurn = false;
             playGame();
 
         } catch (Exception e) {
@@ -147,7 +152,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     private void playGame() {
         try {
-            while(true){
+            while(!gameOverFlag){
 
                 if(myTurn) {
 
@@ -208,6 +213,21 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         System.out.println("Word guessed: " + wordCounter);
         System.out.println("\nPlease wait for your turn.");
         myTurn = false;
+    }
+
+    @Override
+    public void onGameWin(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException {
+
+        gameOverFlag = true;
+
+        printPuzzle(puzzle);
+        System.out.println("Counter: " + guessCounter);
+        System.out.println("Word guessed: " + wordCounter);
+        System.out.println("\nPuzzle completed! Final scores:\n");
+
+        for (String player : scores.keySet()) {
+            System.out.println(player + ": " + scores.get(player));
+        }
     }
 
 

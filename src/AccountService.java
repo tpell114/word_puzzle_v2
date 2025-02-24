@@ -39,15 +39,8 @@ public class AccountService extends UnicastRemoteObject implements AccountServic
     }
 
     @Override
-    public void updateUserScore(String username, Boolean win) throws RemoteException {
-        
-        if (win) {
-            userScores.put(username, userScores.get(username) + 1);
-            System.out.println("User " + username + " won the game! 1 point added to their score.");
-        } else {
-            userScores.put(username, userScores.get(username) - 1);
-            System.out.println("User " + username + " lost the game. 1 point removed from their score.");
-        }
+    public void updateUserScore(String username, Integer value) throws RemoteException {
+        userScores.put(username, userScores.get(username) + value);
     }
 
 
