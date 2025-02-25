@@ -2,16 +2,21 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Client extends UnicastRemoteObject implements ClientCallbackInterface {
 
+    private final Lock lock = new ReentrantLock();
     private CrissCrossPuzzleInterface server;
     private AccountServiceInterface accountService;
     private ScoreboardInterface scoreboard;
     private String username;
     private Integer gameID;
     Boolean myTurn;
+    Boolean gameStartFlag;
     Boolean gameOverFlag;
+
 
     public Client() throws RemoteException {
         super();
@@ -96,6 +101,107 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     private void startGame() {
 
+        gameStartFlag = false;
+
+        System.out.println("\nHow many words would you like in the puzzle? (Enter a number between 2 and 5)");
+        String numWords = System.console().readLine();
+
+        while (!numWords.matches("[2-5]")) {
+            System.out.println("Invalid input.");
+            System.out.println("\nHow many words would you like in the puzzle? (Enter a number between 2 and 5)");
+            numWords = System.console().readLine();
+        }
+
+        System.out.println("\nEnter a failed attempt factor (Enter a number between 1 and 5)");
+        String failedAttemptFactor = System.console().readLine();
+
+        while (!failedAttemptFactor.matches("[1-5]")) {
+            System.out.println("Invalid input.");
+            System.out.println("\nEnter a failed attempt factor (Enter a number between 1 and 5)");
+            failedAttemptFactor = System.console().readLine();
+        }
+
+        try {
+
+            gameID = server.startGame(this.username, this, Integer.valueOf(numWords), Integer.valueOf(failedAttemptFactor));
+            System.out.println("\nStarted game with ID: " + gameID
+                               + "\nShare this ID with your friends to join the game.\n"
+                               + "\nPress any key to start the game, or wait for other players to join...\n"
+                               + "You can press ~ to return to the main menu.");
+
+            while (true) {
+
+                if (System.console().readLine().equals("~")) {
+                    return;
+                } else {
+                    break;
+                }
+
+            }
+
+            server.issueStartSignal(gameID);
+            System.out.println("It's your turn!\n");
+            printPuzzle(server.getInitialPuzzle(gameID));
+            System.out.println("Counter: " + server.getGuessCounter(gameID));
+            myTurn = true;
+            gameOverFlag = false;
+            playGame();
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    private void joinGame() {
+
+        try {
+            System.out.println("\nEnter the ID of the game you would like to join. Or enter 0 to return to the main menu: ");
+            this.gameID = Integer.valueOf(System.console().readLine());
+
+            while(!server.joinGame(gameID, this.username, this)){
+
+                if(this.gameID == 0){
+                    return;
+                }
+
+                System.out.println("Invalid game ID.");
+                System.out.println("\nEnter the ID of the game you would like to join. Or enter 0 to return to the main menu: ");
+                this.gameID = Integer.valueOf(System.console().readLine());
+            }
+
+            System.out.println("You have joined game ID: " + gameID
+                               + "\nPlease wait for the game to start...");
+
+            synchronized (this){wait();}
+            
+            printPuzzle(server.getInitialPuzzle(gameID));
+            System.out.println("Counter: " + server.getGuessCounter(gameID));
+            System.out.println("\nPlease wait for your turn.");
+            gameOverFlag = false;
+            myTurn = false;
+            playGame();
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public synchronized void onGameStart() throws RemoteException {
+        System.out.println("\nGame has started!");
+        notifyAll();
+    }
+
+
+
+    /*
+    private void startGame() {
+
         System.out.println("\nHow many words would you like in the puzzle? (Enter a number between 2 and 5)");
         String numWords = System.console().readLine();
 
@@ -130,7 +236,8 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         }
         
     }
-
+    */
+    /*
     private void joinGame(){
 
         try {
@@ -159,6 +266,14 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         } catch (Exception e) {
             e.printStackTrace();
         } 
+    }
+    */
+
+    @Override
+    public void onPlayerJoin(String player, Integer numPlayers) throws RemoteException {
+
+        System.out.println("\nPlayer: " + player + " has joined the game. Total players: " + numPlayers);
+
     }
 
     private void playGame() {
@@ -197,8 +312,10 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                     }
 
                 }
-
+                //synchronized (this){wait();}
+                //System.out.println("after wait");
                 Thread.sleep(100);
+                
             }
            
         } catch (Exception e) {
@@ -214,6 +331,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         System.out.println("Counter: " + guessCounter);
         System.out.println("Word guessed: " + wordCounter);
         myTurn = true;
+        //notifyAll();
     }
 
     @Override
@@ -231,17 +349,21 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
         gameOverFlag = true;
 
+        System.out.println("\nPuzzle completed!");
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
         System.out.println("Word guessed: " + wordCounter);
-        System.out.println("\nPuzzle completed! Final scores:\n");
+        System.out.println("\nFinal scores:\n");
 
         for (String player : scores.keySet()) {
             System.out.println(player + ": " + scores.get(player));
         }
+
+        //notifyAll();
+        //System.out.println("after notify");
     }
 
-    public void onGameLost(char[][] puzzle, Integer guessCounter, Integer wordCounter , Map<String, Integer> scores) throws RemoteException {
+    public void onGameLoss(char[][] puzzle, Integer guessCounter, Integer wordCounter , Map<String, Integer> scores) throws RemoteException {
         
         gameOverFlag = true;
 
@@ -353,12 +475,17 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         try {
             List<Map.Entry<String, Integer>> topN = scoreboard.getScores(5);
 
-            System.out.println("\nScoreboard (top " + topN.size() + "):\n");
+            if(topN.isEmpty()){
+                System.out.println("Scoreboard empty");
+            } else {
 
-            for (Map.Entry<String, Integer> entry : topN) {
-                System.out.println(entry.getKey() + ": " + entry.getValue());
+                System.out.println("\nScoreboard (top " + topN.size() + "):\n");
+
+                for (Map.Entry<String, Integer> entry : topN) {
+                    System.out.println(entry.getKey() + ": " + entry.getValue());
+                }
             }
-            
+
         } catch (RemoteException e) {
             e.printStackTrace();
         }

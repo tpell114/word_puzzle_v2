@@ -92,6 +92,7 @@ public class PuzzleObject {
         }
 
         if (Arrays.deepEquals(puzzleSlave, puzzleMaster)) {
+            System.out.println("Puzzle slave matches puzzle master!");
             return true;
         }
         return false;
@@ -152,6 +153,7 @@ public class PuzzleObject {
 
 
         if (Arrays.deepEquals(puzzleSlave, puzzleMaster)) {
+            System.out.println("Puzzle slave matches puzzle master!");
             return true;
         }
         return false;

@@ -58,13 +58,42 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
     public Boolean joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
 
         if(gamesMap.containsKey(gameID)){
-            gamesMap.get(gameID).addPlayer(username, client);
+
+            PuzzleObject game = gamesMap.get(gameID);
+
+            game.addPlayer(username, client);
             System.out.println("Added player: " + username + " to game ID: " + gameID);
+
+            Map<String, ClientCallbackInterface> allPlayers = game.getAllPlayers();
+
+            for (String player : allPlayers.keySet()) {
+
+                allPlayers.get(player).onPlayerJoin(username, allPlayers.size());
+
+            }
+
+
             return true;
         } else {
             return false;
         }
     }
+
+    public void issueStartSignal(Integer gameID) throws RemoteException {
+
+        try {
+            Map<String, ClientCallbackInterface> allPlayers = gamesMap.get(gameID).getAllPlayers();
+
+            for (String player : allPlayers.keySet()) {
+                allPlayers.get(player).onGameStart();
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     public char[][] getInitialPuzzle(Integer gameID) throws RemoteException {
         return gamesMap.get(gameID).getPuzzleSlaveCopy();
@@ -93,6 +122,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                         handleGameRunning(game);
                     }
                 } else {
+                    System.out.println("Starting game win sequence...");
                     handleGameWin(game);
                 }
             } else {    //player guessed a word
@@ -106,6 +136,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                         handleGameRunning(game);
                     }
                 } else {
+                    System.out.println("Starting game win sequence...");
                     handleGameWin(game);
                 }
             }
@@ -158,10 +189,12 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
             if (topPlayers.size() == 1){
                 accountService.updateUserScore(topPlayers.get(0), 2);
+                System.out.println("Added 2 points to player: " + topPlayers.get(0));
             } else {
                 
                 for (String player : topPlayers) {
                     accountService.updateUserScore(player, 1);
+                    System.out.println("Added 1 point to player: " + player);
                 }
             }
 
@@ -191,7 +224,6 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
             }
 
         } catch (Exception e) {
-
             e.printStackTrace();
         }
     }
