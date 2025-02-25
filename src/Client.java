@@ -312,9 +312,16 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                     }
 
                 }
+
+                //System.out.println("before wait");
+
+                if(!gameOverFlag){
+                    synchronized (this){wait();}
+                }
+
                 //synchronized (this){wait();}
                 //System.out.println("after wait");
-                Thread.sleep(100);
+                //Thread.sleep(100);
                 
             }
            
@@ -325,17 +332,17 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     
 
     @Override
-    public void onYourTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
+    public synchronized void onYourTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
         System.out.println("\nIt's your turn!\n");
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
         System.out.println("Word guessed: " + wordCounter);
         myTurn = true;
-        //notifyAll();
+        notifyAll();
     }
 
     @Override
-    public void onOpponentTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
+    public synchronized void onOpponentTurn(char[][] puzzle, Integer guessCounter, Integer wordCounter) throws RemoteException {
         System.out.println("\nIt's your opponent's turn!\n");
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
@@ -345,7 +352,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     }
 
     @Override
-    public void onGameWin(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException {
+    public synchronized void onGameWin(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException {
 
         gameOverFlag = true;
 
@@ -359,7 +366,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             System.out.println(player + ": " + scores.get(player));
         }
 
-        //notifyAll();
+        notifyAll();
         //System.out.println("after notify");
     }
 
@@ -375,6 +382,9 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         for (String player : scores.keySet()) {
             System.out.println(player + ": " + scores.get(player));
         }
+
+        notifyAll();
+        //System.out.println("after notify");
     }
 
     private void printPuzzle(char[][] puzzle) {
