@@ -1,3 +1,5 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
@@ -140,8 +142,8 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
             System.out.println("It's your turn!\n");
             printPuzzle(server.getInitialPuzzle(gameID));
             System.out.println("Counter: " + server.getGuessCounter(gameID));
-            myTurn = true;
             gameOverFlag = false;
+            myTurn = true;
             playGame();
 
 
@@ -278,6 +280,50 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     }
 
     private void playGame() {
+        
+        Thread quitThread = new Thread(() -> {
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+            try {
+
+                while (!gameOverFlag) {
+
+                    if (reader.ready()) {
+
+                        String input = reader.readLine();
+
+                        if (input.equals("~")) {
+
+                            System.out.println("Left game ID: " + gameID);
+
+                            gameOverFlag = true;
+                            myTurn = false;
+                            server.playerQuit(gameID, this.username);
+
+                            synchronized (this) {notifyAll();}
+
+                            break;
+                        }
+                    } else {
+                        Thread.sleep(100);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                
+            }
+        });
+
+        quitThread.start();
+        
+        
+
+
+
+
+
         try {
             while(!gameOverFlag){
 
@@ -305,20 +351,27 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
                     
                     }
 
+                    
                     if (guess.equals("~")){
 
                         myTurn = false;  //maybe?
                         server.playerQuit(gameID, this.username);
                         return;
                     }
+                    
 
                 }
 
                 //System.out.println("before wait");
 
+
+                
+
+                
                 if(!gameOverFlag && !myTurn){
                     synchronized (this){wait();}
                 }
+                
 
                 //synchronized (this){wait();}
                 //System.out.println("after wait");
@@ -328,6 +381,12 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
            
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                quitThread.join(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
     
@@ -348,7 +407,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
         System.out.println("Word guessed: " + wordCounter);
-        System.out.println("\nPlease wait for your turn.");
+        System.out.println("\nPlease wait for your turn. (enter ~ to quit)");
         myTurn = false;
     }
 

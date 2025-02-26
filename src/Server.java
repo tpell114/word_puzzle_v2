@@ -242,9 +242,25 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         if(!gamesMap.get(gameID).removePlayer(username)){
 
             System.out.println("Removed player: " + username + " from game ID: " + gameID);
-            game.incrementActivePlayer();
-            ClientCallbackInterface nextPlayerCallback = game.getActivePlayerCallback();
-            nextPlayerCallback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
+
+
+            if (username.equals(game.getActivePlayer())){
+
+                game.incrementActivePlayer();
+                ClientCallbackInterface nextPlayerCallback = game.getActivePlayerCallback();
+                nextPlayerCallback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
+          
+            }
+
+
+
+
+
+
+
+            //game.incrementActivePlayer();
+            //ClientCallbackInterface nextPlayerCallback = game.getActivePlayerCallback();
+            //nextPlayerCallback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
           
             Map<String, ClientCallbackInterface> allPlayers = game.getAllPlayers();
 
