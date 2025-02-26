@@ -356,6 +356,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     public synchronized void onGameWin(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException {
 
         gameOverFlag = true;
+        gameID = -1;
 
         System.out.println("\nPuzzle completed!");
         printPuzzle(puzzle);
@@ -374,6 +375,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
     public void onGameLoss(char[][] puzzle, Integer guessCounter, Integer wordCounter , Map<String, Integer> scores) throws RemoteException {
         
         gameOverFlag = true;
+        gameID = -1;
 
         printPuzzle(puzzle);
         System.out.println("Counter: " + guessCounter);
