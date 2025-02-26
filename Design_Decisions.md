@@ -1,18 +1,18 @@
 # Protocol Design Document: Multiplayer Criss-Cross Word Puzzle with Java RMI 
 
 ## Introduction
-### Objective: 
-### Scope:
-### Technologies Used: Java RMI, Remote Interfaces
+### Objective: This document outlines the design and implementation of a distributed multiplayer Criss-Cross word puzzle game using Java RMI.
+### Scope: The system enables single-player and multi-player gameplay where users take turns guessing words or letters. The system includes microservices for word repository, user account management, and a scoreboard.
+### Technologies Used: Java RMI, ConcurrentHashMap, Remote Interfaces
 
 ## System Architecture
 ### Components
-*  Client: -
-*  Server: -
-*  Account Service: -
-*  Word Repository: -
-*  Scoreboard: -
-*  RMI Registry: -
+*  Client: Handles user interactions and communicates with the game server, account service, and scoreboard via RMI.
+*  Server: Manages game logic, tracks game state, and coordinates multiple players.
+*  Account Service: Manages user registration and scores.
+*  Word Repository: Stores and retrieves words for puzzle generation.
+*  Scoreboard: Computes player rankings.
+*  RMI Registry: Registers all remote services.
 
 ### Data Exchange and Method Invocation Flow
 #### User Registration and Score Management
@@ -104,12 +104,12 @@
 * Naming Conventions: Camel case
 
 ## Code Review Process
-* In person meetings as well as consistent communication through discord 
+* Communication through discord 
 
 
 ## Statement of Contribution
-| Name        | Server     |Client|Word Repo| Going the extra mile|
-| -------------       |-------------   |-------------      |-------------  |-------------  |
-|Tyler       |Tyler|Tyler   | Tyler|Tyler|
-|Juan       |Juan|Juan   | Juan|
+| Name| Server|Client| Word Repo| Word repo interface| Account Service|AccountInterface|ClientcallbackInterface|Constants|CrisscrossPuzzleInterface|PuzzleObject|RMIRegistry|Scorebooard|Scoreboard Interface|
+-----|-------|------|-----------|--------------------|----------------|----------------|-----------------------|---------|-------------------------|------------|-----------|-----------|--------------------|
+|Tyler|Tyler |Tyler | Tyler     |Tyler               |                |                |Tyler                  |Tyler    |Tyler                    |Tyler       |Tyler      |           |                    |
+|Juan |      |      | Juan      |                    |Juan            |Juan            |                       |         |                         |            |           |Juan       |Juan                |  
 
