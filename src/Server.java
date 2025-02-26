@@ -67,23 +67,31 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         throw new RemoteException("Server is full. Please try again later.");
     }
     
+
     /**
-     * Allows a player to join an existing game by entering a valid gameID.
-     * If the gameID is valid, the player is added to the game and notified
-     * to wait for their turn. The method returns true if the player is
-     * successfully added to the game, and false if the gameID is invalid.
+     * Allows a player to join an existing game by specifying a valid game ID.
+     * If the game ID is valid, the player is added to the game and notified
+     * of the total number of players in the game.
+     * If the game ID is invalid, the method returns false.
+     * If the player is already in the game, the method returns false.
+     * If the player is successfully added to the game, the method returns true.
      * 
-     * @param gameID the ID of the game the player wants to join
-     * @param username the username of the player who wants to join the game
-     * @param client the callback interface of the client who wants to join the game
-     * @return true if the player is successfully added to the game, and false if the gameID is invalid
-     * @throws RemoteException if an error occurs during communication with the server
+     * @param gameID the ID of the game to join
+     * @param username the username of the player who requests to join the game
+     * @param client the callback interface of the client who requests to join the game
+     * @return true if the player is successfully added to the game, false otherwise
+     * @throws RemoteException if an error occurs during communication with the
+     *         server
      */
     public Boolean joinGame(Integer gameID, String username, ClientCallbackInterface client) throws RemoteException {
 
         if(gamesMap.containsKey(gameID)){
 
             PuzzleObject game = gamesMap.get(gameID);
+
+            if (game.getAllPlayers().containsKey(username)) {
+                return false;
+            }
 
             game.addPlayer(username, client);
             System.out.println("Added player: " + username + " to game ID: " + gameID);
