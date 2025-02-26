@@ -31,6 +31,13 @@ public class PuzzleObject {
         initPuzzle();
     }
 
+    /**
+     * Adds a new player to the game, associating them with a ClientCallbackInterface
+     * and initializing their score to 0.
+     * 
+     * @param username The username of the player to add.
+     * @param client The ClientCallbackInterface the player will use to receive updates.
+     */
     public void addPlayer(String username, ClientCallbackInterface client) {
         this.players.put(username, client);
         this.scores.put(username, 0);
@@ -52,10 +59,12 @@ public class PuzzleObject {
         this.guessCounter--;
 
         for (int i = 0; i < puzzleMaster.length; i++) {
-            for (int j = 0; j < puzzleMaster[i].length; j++) {
-                if (puzzleMaster[i][j] == guess) {
-                    puzzleSlave[i][j] = guess;
 
+            for (int j = 0; j < puzzleMaster[i].length; j++) {
+
+                if (puzzleMaster[i][j] == guess) {
+
+                    puzzleSlave[i][j] = guess;
 
                     String masterRow = new String(puzzleMaster[i]).replaceAll("^-+|-+$", "");
                     String slaveRow = new String(puzzleSlave[i]).replaceAll("^-+|-+$", "");
@@ -63,9 +72,6 @@ public class PuzzleObject {
                     if(slaveRow.equals(masterRow) && horizontalWords.contains(slaveRow) && !completedWords.contains(slaveRow)){
                         completedWords.add(slaveRow);
                         scores.put(username, scores.get(username) + 1);
-                        //System.out.println("master row: " + masterRow);
-                        //System.out.println("slave row: " + slaveRow);
-                        //System.out.println("completed words: " + completedWords);
                         System.out.println("Added 1 word guessed to: " + username);
                     }
 
@@ -74,7 +80,7 @@ public class PuzzleObject {
                     String slaveColumn = "";
 
                     for (int k = 0; k < puzzleMaster.length; k++) {
-                        
+ 
                         masterColumn += puzzleMaster[k][middleColumn];
                         slaveColumn += puzzleSlave[k][middleColumn];
                     }
@@ -82,9 +88,6 @@ public class PuzzleObject {
                     if (slaveColumn.equals(masterColumn) && !completedWords.contains(slaveColumn)){
                         completedWords.add(slaveColumn);
                         scores.put(username, scores.get(username) + 1);
-                        //System.out.println("master column: " + masterColumn);
-                        //System.out.println("slave column: " + slaveColumn);
-                        //System.out.println("completed words: " + completedWords);
                         System.out.println("Added 1 word guessed to: " + username);
                     }
                 }
@@ -148,9 +151,7 @@ public class PuzzleObject {
                     }
                 }
             }
-
         }
-
 
         if (Arrays.deepEquals(puzzleSlave, puzzleMaster)) {
             System.out.println("Puzzle slave matches puzzle master!");
@@ -159,38 +160,70 @@ public class PuzzleObject {
         return false;
     }
 
-    public String getActivePlayer() {
+    /**
+     * Gets the username of the player whose turn it currently is.
+     * 
+     * @return The username of the active player.
+     */
+    public String getActivePlayer(){
         return activePlayer;
     }
 
-    public ClientCallbackInterface getActivePlayerCallback() {
+    /**
+     * Gets the callback interface of the player whose turn it currently is.
+     * 
+     * @return The callback interface of the active player.
+     */
+    public ClientCallbackInterface getActivePlayerCallback(){
         return players.get(activePlayer);
     }
 
-    public Map<String, ClientCallbackInterface> getAllPlayers() {
+    /**
+     * Gets a map of all players in the game and their corresponding callback interfaces. The keys are the usernames of the players, and the values are the callback interfaces that the server can use to notify players of events.
+     * 
+     * @return A map of all players in the game and their callback interfaces.
+     */
+    public Map<String, ClientCallbackInterface> getAllPlayers(){
         return new LinkedHashMap<>(players);
     }
 
+    /**
+     * Increments the active player to the next player in the list of players
+     * registered in the game. If the list is empty, does nothing.
+     * 
+     * @see #getActivePlayer()
+     */
     public void incrementActivePlayer() {
-        lock.lock();
-        try {
-            List<String> keys = new ArrayList<>(players.keySet());
-            if (!keys.isEmpty()) {
-                int currentIndex = keys.indexOf(activePlayer);
-                int nextIndex = (currentIndex + 1) % keys.size();
-                activePlayer = keys.get(nextIndex);
-                System.out.println("Next player: " + activePlayer);
-            }
-        } finally {
-            lock.unlock();
+        
+        List<String> keys = new ArrayList<>(players.keySet());
+
+        if (!keys.isEmpty()) {
+            int currentIndex = keys.indexOf(activePlayer);
+            int nextIndex = (currentIndex + 1) % keys.size();
+            activePlayer = keys.get(nextIndex);
+            System.out.println("Next player: " + activePlayer);
         }
     }
     
-
+    /**
+     * Retrieves the current number of guesses remaining for the game.
+     * This value decreases with each incorrect guess made by players.
+     *
+     * @return The number of remaining guesses.
+     */
     public Integer getGuessCounter(){
         return guessCounter;
     }
 
+    /**
+     * Retrieves a copy of the current puzzle state, which is the best guess the 
+     * players have made so far. The copy is a 2D array of characters, where the 
+     * first dimension is the row and the second is the column. The characters in 
+     * the array are either the letters guessed so far, or '-' if the corresponding 
+     * letter has not been guessed yet.
+     * 
+     * @return A copy of the current puzzle state as a 2D array of characters.
+     */
     public char[][] getPuzzleSlaveCopy() {
 
         lock.lock();
@@ -202,9 +235,19 @@ public class PuzzleObject {
 
         lock.unlock();
         return copy;
-
     }
     
+    /**
+     * Initializes the puzzle by setting up the stem word and horizontal words
+     * using the WordRepositoryInterface. The method calculates the initial
+     * guess counter based on the length of the stem and horizontal words
+     * multiplied by the difficulty factor. It retrieves words from the
+     * repository to populate the horizontalWords list and ensures it contains
+     * the correct number of words. It then calls initPuzzleMaster and
+     * initPuzzleSlave to set up the puzzle grids.
+     * 
+     * @throws Exception if an error occurs during the lookup or retrieval of words
+     */
     private void initPuzzle() {
 
         try {
@@ -223,11 +266,9 @@ public class PuzzleObject {
             initPuzzleMaster();
             initPuzzleSlave();
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -282,11 +323,9 @@ public class PuzzleObject {
             stemIndex += 2;
         }
      
-
         for (char[] row : puzzleMaster) {
             System.out.println(new String(row));
         }
-
     }
 
     /**
@@ -300,7 +339,6 @@ public class PuzzleObject {
 
         puzzleSlave = new char[puzzleMaster.length][puzzleMaster[0].length];
 
-        
         for (int i = 0; i < puzzleSlave.length; i++) {
             for (int j = 0; j < puzzleSlave[i].length; j++) {
                 if (puzzleMaster[i][j] == '.') {
@@ -309,16 +347,18 @@ public class PuzzleObject {
                     puzzleSlave[i][j] = '-';
                 }
             }
-        }
-        
-        /*
-        for (char[] row : puzzleSlave) {
-            System.out.println(new String(row));
-        }
-        */
-        
+        } 
     }
 
+    /**
+     * Removes a player from the game.
+     * 
+     * Player is removed from the players list and scores map.
+     * 
+     * @param username the username of the player to be removed
+     * @return true if the player was successfully removed, false if the player
+     *         was not in the game
+     */
     public Boolean removePlayer(String username){
 
         this.players.remove(username);
@@ -331,10 +371,23 @@ public class PuzzleObject {
         return false;
     }
 
+    /**
+     * Retrieves the number of words guessed by a specific player.
+     *
+     * @param username the username of the player whose score is to be retrieved
+     * @return the number of words guessed by the player, or null if the player
+     *         is not found
+     */
     public Integer getWordsGuessed(String username){
         return this.scores.get(username);
     }
 
+    /**
+     * Retrieves a list of the players with the highest score in the game.
+     * 
+     * @return a list of the top players, or an empty list if there are no
+     *         players
+     */
     public List<String> getHighestScoredPlayers(){
 
         int highestScore = Collections.max(scores.values());
@@ -349,6 +402,12 @@ public class PuzzleObject {
         return topPlayers;
     }
 
+    /**
+     * Retrieves a map of all players in the game and their scores.
+     *
+     * @return a map of all players and their scores, or an empty map if there
+     *         are no players
+     */
     public Map<String, Integer> getAllScores(){
         return new LinkedHashMap<>(scores);
     }

@@ -13,6 +13,3 @@ public interface ClientCallbackInterface extends Remote {
     public void onGameStart() throws RemoteException;
 
 }
-
-
-

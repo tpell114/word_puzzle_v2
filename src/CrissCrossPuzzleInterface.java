@@ -2,7 +2,6 @@ import java.rmi.*;
 
 public interface CrissCrossPuzzleInterface extends Remote {
 
-    //public Integer startGame(ClientCallbackInterface client) throws RemoteException;
     public Integer startGame(String player, ClientCallbackInterface client, Integer numWords, Integer difficultyFactor) throws RemoteException;
     public Boolean joinGame(Integer gameID, String player, ClientCallbackInterface client) throws RemoteException;
     public void issueStartSignal(Integer gameID) throws RemoteException;
@@ -14,14 +13,4 @@ public interface CrissCrossPuzzleInterface extends Remote {
     public Boolean removeWord(String word) throws RemoteException;
     public Boolean checkWord(String word) throws RemoteException;
 
-    
-    //public String guessLetter(String player, char letter) throws RemoteException;
-    //public String guessWord(String player, String word) throws RemoteException;
-    //public String endGame(String player) throws RemoteException;
-    //public String restartGame(String player) throws RemoteException;
-    //public String addWord() throws RemoteException;
-    //public String removeWord() throws RemoteException;
-    
 }
-
-

@@ -27,6 +27,13 @@ public class Scoreboard extends UnicastRemoteObject implements ScoreboardInterfa
         }
     }
 
+    /**
+     * Retrieves the top n scores from the Account Service in descending order of their values.
+     * 
+     * @param n the number of top scores to retrieve
+     * @return a list of entries, each containing the username and score of a player
+     * @throws RemoteException if an error occurs during remote communication
+     */
     public List<Map.Entry<String, Integer>> getScores(Integer n) throws RemoteException {
 
         Map<String, Integer> scores = accountService.getAllUsers();
@@ -37,5 +44,4 @@ public class Scoreboard extends UnicastRemoteObject implements ScoreboardInterfa
         return topN;
     }
 
-    
 }

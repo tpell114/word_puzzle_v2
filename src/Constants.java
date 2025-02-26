@@ -20,6 +20,10 @@ public class Constants {
                                                     + "remove words from the repo by prefixing a word with '-' eg. -apple\n"
                                                     + "check if a word exists by prefixing a word with '?' eg. ?apple\n"
                                                     + "enter '~' to return to menu";
+
+    public static final String GAME_START_MESSAGE = "\nShare this ID with your friends to join the game.\n"
+                                                        + "\nPress any key to start the game, or wait for other players to join...\n"
+                                                        + "You can press ~ to return to the main menu.";
                                                     
     private Constants() {
         // This class should not be instantiated
