@@ -117,13 +117,13 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
-                        handleGameLoss(game);
+                        handleGameLoss(game, gameID);
                     } else {
                         handleGameRunning(game);
                     }
                 } else {
                     System.out.println("Starting game win sequence...");
-                    handleGameWin(game);
+                    handleGameWin(game, gameID);
                 }
             } else {    //player guessed a word
 
@@ -131,13 +131,13 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
                 if (!solvedFlag) {
                     if (game.getGuessCounter() == 0) {
-                        handleGameLoss(game);
+                        handleGameLoss(game, gameID);
                     } else {
                         handleGameRunning(game);
                     }
                 } else {
                     System.out.println("Starting game win sequence...");
-                    handleGameWin(game);
+                    handleGameWin(game, gameID);
                 }
             }
 
@@ -182,7 +182,7 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
         }
     }
 
-    private void handleGameWin(PuzzleObject game){
+    private void handleGameWin(PuzzleObject game, Integer gameID){
 
         try {
             List<String> topPlayers = game.getHighestScoredPlayers();
@@ -205,14 +205,16 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
                 players.get(player).onGameWin(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), game.getAllScores());
             }
+
+            System.out.println("Removed game ID: " + gameID);
+            gamesMap.remove(gameID);
             
         } catch (Exception e) {
-            System.out.println("Error updating user scores: " + e.getMessage()); 
             e.printStackTrace();
         }
     }
 
-    private void handleGameLoss(PuzzleObject game){
+    private void handleGameLoss(PuzzleObject game, Integer gameID){
 
         try {
             Map<String, ClientCallbackInterface> players = game.getAllPlayers();
@@ -223,6 +225,10 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
                 players.get(player).onGameLoss(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(player), game.getAllScores());
             }
 
+            System.out.println("Removed game ID: " + gameID);
+            gamesMap.remove(gameID);
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -232,11 +238,26 @@ public class Server extends UnicastRemoteObject implements CrissCrossPuzzleInter
 
         PuzzleObject game = gamesMap.get(gameID);
 
+
         if(!gamesMap.get(gameID).removePlayer(username)){
+
             System.out.println("Removed player: " + username + " from game ID: " + gameID);
             game.incrementActivePlayer();
-            ClientCallbackInterface callback = game.getActivePlayerCallback();
-            callback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
+            ClientCallbackInterface nextPlayerCallback = game.getActivePlayerCallback();
+            nextPlayerCallback.onYourTurn(game.getPuzzleSlaveCopy(), game.getGuessCounter(), game.getWordsGuessed(game.getActivePlayer()));
+          
+            Map<String, ClientCallbackInterface> allPlayers = game.getAllPlayers();
+
+            for (String player : allPlayers.keySet()) {
+
+                allPlayers.get(player).onPlayerQuit(username, allPlayers.size());
+
+            }
+        
+        
+        
+        
+        
         } else {
             System.out.println("No more players in game ID: " + gameID + ", removing game...");
             gamesMap.remove(gameID);

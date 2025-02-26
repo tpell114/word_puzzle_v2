@@ -9,6 +9,7 @@ public interface ClientCallbackInterface extends Remote {
     public void onGameWin(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException;
     public void onGameLoss(char[][] puzzle, Integer guessCounter, Integer wordCounter, Map<String, Integer> scores) throws RemoteException;
     public void onPlayerJoin(String player, Integer numPlayers) throws RemoteException;
+    public void onPlayerQuit(String player, Integer numPlayers) throws RemoteException;
     public void onGameStart() throws RemoteException;
 
 }

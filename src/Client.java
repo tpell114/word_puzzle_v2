@@ -2,12 +2,9 @@ import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Client extends UnicastRemoteObject implements ClientCallbackInterface {
 
-    private final Lock lock = new ReentrantLock();
     private CrissCrossPuzzleInterface server;
     private AccountServiceInterface accountService;
     private ScoreboardInterface scoreboard;
@@ -276,6 +273,10 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
     }
 
+    public void onPlayerQuit(String player, Integer numPlayers) throws RemoteException {
+        System.out.println("\nPlayer: " + player + " has quit the game. Players remaining: " + numPlayers);
+    }
+
     private void playGame() {
         try {
             while(!gameOverFlag){
@@ -315,7 +316,7 @@ public class Client extends UnicastRemoteObject implements ClientCallbackInterfa
 
                 //System.out.println("before wait");
 
-                if(!gameOverFlag){
+                if(!gameOverFlag && !myTurn){
                     synchronized (this){wait();}
                 }
 
