@@ -62,14 +62,21 @@
 
 ### Summary of Data Flow
 
-#### Client  ↔ Server:
+#### Client ↔ Server:
 * The client interacts with the game server to start/join a game, make guesses, and receive game updates.
-#### Server   ↔Word Repository:
+
+
+#### Server ↔Word Repository:
 * The server allows players to add, remove, and check words (since these actions go through the game server).
-#### Server  ↔ Account Service:
+
+#### Server↔ Account Service:
 * The server retrieves and updates player scores.
-#### Client    ↔Account Service:
+
+
+#### Client↔Account Service:
 * The client registers users and retrieves their scores.
+
+
 #### Client ↔  Scoreboard:
 * The client requests leaderboard rankings.
 
@@ -81,19 +88,53 @@
 #### Decision category
 * justification
 
+#### Use of Java RMI Instead of Sockets
+* RMI simplifies distributed system development by allowing objects to call methods on remote objects as if they were local.
+* Eliminates the need for manual serialization/deserialization of data, unlike sockets.
+* Built-in multi-threading makes handling multiple clients easier.
+
+#### Microservices
+* Modularity: Each service (Game Server, Account Service, Word Repository, Scoreboard) has a clear responsibility, making the system easier to modify.
+* Size Scalability: The system can be expanded without affecting other components.
+* Reduced Complexity: The game server does not have to handle user accounts, word storage, or leaderboards—it delegates these tasks.
+
+
+#### Turn-Based Synchronization Using RMI Callbacks
+* Efficiency: Instead of repeatedly asking the server for updates (polling), the server pushes updates to clients via RMI callbacks.
+* Better Player Experience: Players get immediate notifications when it's their turn, reducing unnecessary network traffic.
+* Concurrency Safety: Ensures only one player can make a move at a time.
+
+
+####  Storing Game State in PuzzleObject
+* Encapsulation: Keeps all game-related data inside a single object, making it easy to manage.
+* Scalability: Multiple games can run in parallel without interfering with each other.
+* Data Consistency: The object maintains the puzzle grid, active players, and scores, ensuring game logic remains synchronized.
+
+#### Handling Player Scores with an External Service (AccountService)
+* Persistence: Scores remain available even after a game session ends.
+* Separation of Complexity: The game server only manages the current game, while the Account Service handles long-term player history.
+* Easier Leaderboard Implementation: The Scoreboard Service can easily pull data from the Account Service without interfering with the game server.
+
+#### Multi-Player Game Management with GameID
+* Allows multiple groups of players to play at the same time.
+* Ensures players join the correct game session.
+* Stored in ConcurrentHashMap<Integer, PuzzleObject> so each game has its own isolated state.
+
+#### Leaderboard Implementation via ScoreboardService
+* Decouples leaderboard ranking from the game logic, making the game server lighter.
+* Future Scalability: The leaderboard logic can be extended without modifying the game server.
+* More efficient sorting: The Scoreboard only requests top N scores, rather than sorting all scores every time.
+
 
 ## Challenges & Solutions
 
 | Challenges   |   Solutions |
 |------------- |-------------|
-|              |        |
-|              |             |
-|              |             |
-|              |             |
-|              |             |
-|              |             |
-|              |             |
-
+|**Ensuring Fair Turn-Based Multiplayer Play** <br> -Multiple players compete for the same puzzle. <br> -Players must take turns, but RMI does not have built-in turn-based synchronization. <br> -Need a way to notify the correct player when it's their turn without others interfering.|-Implemented RMI callbacks (ClientCallbackInterface) to notify players when it's their turn. <br> -Used a turn-tracking mechanism inside PuzzleObject: <BR> + The active player is stored in a variable (activePlayer). <br> + When a player makes a move, the game calls incrementActivePlayer() to move to the next player. <br> +The next player is notified via RMI callback (onYourTurn()), while others receive onOpponentTurn(). <br>  **Result**: Players wait for their turn and are notified automatically, avoiding manual polling.      |
+|**Preventing Race Conditions in Multi-Player Mode** <br> -Multiple players interact with the same game state. <br> Without proper synchronization, two players could modify the puzzle at the same time. <br> Need a way to ensure only one player modifies the game state at a time.| -Used synchronized methods in PuzzleObject to prevent simultaneous modifications. <br> Applied a ReentrantLock in PuzzleObject to ensure only one thread (player) can modify the puzzle at a time. <br> -The server rejects inputs from players whose turn it is not, preventing unfair guesses. <br> **Result**: The puzzle state updates correctly without conflicts.            |
+| **Managing Concurrent Games Without Interference** <br> -Multiple games must run simultaneously, each with its own players and puzzle state. <br> -Need a way to separate game states while allowing multiple games to run on the same server.              | -Each game is assigned a unique gameID when created. <br> -Used ConcurrentHashMap<Integer, PuzzleObject> to store all active games. <br> -When a player joins, they provide a gameID, ensuring they are added to the correct game. <br>  **Result**: Multiple games can run at the same time without interfering with each other.  |
+|**Handling Player Disconnects** <br> -If a player disconnects mid-game, it could leave the game in an invalid state. <br> -Need a way to handle player exits without breaking the game.   | -Implemented a playerQuit() method that: <br> +Removes the player from the game. <br> +If other players remain, the turn is passed to the next player. <br> +If all players leave, the game is removed from memory. <br> **Result**: The game does not break if a player disconnects, and active players can continue playing.
+            
 
 
 ## Coding Standards
@@ -112,4 +153,3 @@
 -----|-------|------|-----------|--------------------|----------------|----------------|-----------------------|---------|-------------------------|------------|-----------|-----------|--------------------|
 |Tyler|Tyler |Tyler | Tyler     |Tyler               |                |                |Tyler                  |Tyler    |Tyler                    |Tyler       |Tyler      |           |                    |
 |Juan |      |      | Juan      |                    |Juan            |Juan            |                       |         |                         |            |           |Juan       |Juan                |  
-
